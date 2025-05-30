@@ -1,0 +1,30 @@
+# Ignore common system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE-specific files
+/.idea/
+/*.iml
+/.vscode/
+/*.log
+
+# Node.js dependencies and build files (for frontend)
+node_modules/
+/build/
+/dist/
+
+# Maven target directory (for backend)
+/backend/hospital/target/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# Backup files
+*.bak

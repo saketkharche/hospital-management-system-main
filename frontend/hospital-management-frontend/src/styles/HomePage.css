@@ -1,0 +1,100 @@
+/* src/components/HomePage.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .navbar {
+    background-color: #0044cc;
+    /* padding: 1rem; */
+  }
+  
+  .navbar .logo {
+    color: white;
+    font-size: 1.5rem;
+    text-decoration: none;
+  }
+
+  .Navbarlogo {
+    width: 50px; /* Adjust the width of the logo */
+    margin-right: 10px; /* Adds some space between the logo and text */
+  }
+  
+  .navbar .nav-links {
+    list-style-type: none;
+    float: right;
+  }
+  
+  .navbar .nav-links li {
+    display: inline-block;
+    margin: 0 10px;
+  }
+  
+  .navbar .nav-links li a {
+    color: white;
+    text-decoration: none;
+  }
+  
+  .hero {
+    background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQX42f-jh-x4pKISBO8kJxrQ7vbbCWQ4iV8Mw&s');
+    color: white;
+    height: 400px; /* You can adjust this value as needed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-repeat: no-repeat;
+    background-position: center; /* Center the image */
+    background-size: cover; /* Ensure the image covers the entire area */
+    width: 100%; /* Ensures the width is 100% of the parent element */
+}
+
+  
+  .hero h1 {
+    font-size: 3rem;
+    margin: 0;
+  }
+  
+  .hero p {
+    font-size: 1.2rem;
+  }
+  
+  .cta-button {
+    background-color: #ff6600;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    margin-top: 20px;
+    display: inline-block;
+  }
+  
+  .features {
+    padding: 2rem 0;
+  }
+  
+  .features h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .feature-list {
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  .feature-item {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    width: 30%;
+    text-align: center;
+  }
+  
+  .footer {
+    background-color: #222;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+  }
+  
