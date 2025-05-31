@@ -10,6 +10,8 @@ import PatientProfile from './pages/PatientProfile';
 import NurseProfile from './pages/NurseProfile';
 import StaffProfile from './pages/StaffProfile';
 
+
+
 function App() {
   return (
     <Router basename="/LifeBridgeHospital"> {/* Set the basename to match your context path */}

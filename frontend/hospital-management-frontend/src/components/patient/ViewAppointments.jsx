@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -11,26 +12,18 @@ import {
   Paper,
 } from "@mui/material";
 
-const appointments = [
-  {
-    id: 1,
-    patientName: "John Doe",
-    doctorName: "Dr. Smith",
-    date: "2025-06-01",
-    time: "10:00 AM",
-    status: "Confirmed",
-  },
-  {
-    id: 2,
-    patientName: "Jane Roe",
-    doctorName: "Dr. Adams",
-    date: "2025-06-02",
-    time: "02:00 PM",
-    status: "Pending",
-  },
-];
-
 const ViewAppointments = () => {
+  const [appointments, setAppointments] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:8080/api/appointments")
+      .then((res) => {
+        setAppointments(res.data);
+      })
+      .catch((err) => console.error("Error fetching appointments:", err));
+  }, []);
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>

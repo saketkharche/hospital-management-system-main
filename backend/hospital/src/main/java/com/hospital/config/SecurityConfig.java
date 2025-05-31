@@ -1,6 +1,7 @@
 package com.hospital.config;
 
 import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +19,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import jakarta.servlet.http.HttpServletResponse;
 
 import com.hospital.security.JwtAuthenticationFilter;
 import com.hospital.security.UserDetailsServiceImpl;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @EnableWebSecurity
 @Configuration
@@ -38,9 +40,10 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(authorizeRequests -> {
 					authorizeRequests
-							.requestMatchers("/", "/hospital/**", "/home", "/api/patients/register", "/api/login")
+							.requestMatchers("/", "/hospital/**", "/home", "/api/patients/register", "/api/login",
+									"/api/**")
 							.permitAll().requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-							.requestMatchers("/api/doctor/**").hasAnyAuthority("ROLE_DOCTOR","ROLE_ADMIN")
+							.requestMatchers("/api/doctor/**").hasAnyAuthority("ROLE_DOCTOR", "ROLE_ADMIN")
 							.requestMatchers("/api/nurse/**").hasAuthority("ROLE_NURSE")
 							.requestMatchers("/api/staff/**").hasAuthority("ROLE_STAFF")
 							.requestMatchers("/api/patients/**").hasAnyAuthority("ROLE_PATIENT", "ROLE_ADMIN")

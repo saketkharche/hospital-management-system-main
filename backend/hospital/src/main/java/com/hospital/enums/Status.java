@@ -1,5 +1,5 @@
 package com.hospital.enums;
 
 public enum Status {
-	ACTIVE, INACTIVE
+	ACTIVE, INACTIVE, PENDING, CONFIRMED, CANCELLED
 }
