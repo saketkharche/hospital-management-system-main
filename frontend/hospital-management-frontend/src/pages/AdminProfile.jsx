@@ -11,24 +11,80 @@ import {
   ListItemText,
   Toolbar,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import {
   PersonAdd,
   Assignment,
   Settings,
+  Group, // Staff icon
+  LocalHospital, // Nurses icon
+  Apartment, // Department icon (example)
+  Science, // Laboratory icon (example)
+  EventNote, // Appointment icon (example)
+  Hotel, // Patient Admit icon (example)
 } from "@mui/icons-material";
-import ViewPatientTable from "../components/tables/ViewPatientTable"; // Patient Table Component
-import ViewDoctorTable from "../components/tables/ViewDoctorTable"; // Placeholder
-import ViewStaffTable from "../components/tables/ViewStaffTable"; // Placeholder
-import ViewNuresTable from "../components/tables/ViewNursesTable"; // Placeholder
-import ViewDepartmentTable from "../components/tables/ViewDepartmentTable"; // Placeholder
-import ViewLablotryTable from "../components/tables/ViewLablotryTable"; // Placeholder
-import ViewAppointmentTable from "../components/tables/ViewAppointmentTable"; // Placeholder
-import ViewPatientAdmitTable from "../components/tables/ViewPatientAdmitTable"; // Placeholder
-import SettingsComponent from "../components/admin/Settings"; // Settings Component
+
+import ViewPatientTable from "../components/tables/ViewPatientTable";
+import ViewDoctorTable from "../components/tables/ViewDoctorTable";
+import ViewStaffTable from "../components/tables/ViewStaffTable";
+import ViewNursesTable from "../components/tables/ViewNursesTable";
+import ViewDepartmentTable from "../components/tables/ViewDepartmentTable";
+import ViewLablotryTable from "../components/tables/ViewLablotryTable";
+import ViewAppointmentTable from "../components/tables/ViewAppointmentTable";
+import ViewPatientAdmitTable from "../components/tables/ViewPatientAdmitTable";
+import SettingsComponent from "../components/admin/Settings";
 import LogoutButton from "./LogoutButton";
 import { useNavigate } from "react-router-dom";
 import { fetchAdminData } from "../services/adminService";
+
+const sidebarItems = [
+  {
+    key: "manage-patients",
+    label: "Manage Patients",
+    icon: <PersonAdd style={{ color: "#fff" }} />,
+  },
+  {
+    key: "manage-doctors",
+    label: "Manage Doctors",
+    icon: <Assignment style={{ color: "#fff" }} />,
+  },
+  {
+    key: "manage-staff",
+    label: "Manage Staff",
+    icon: <Group style={{ color: "#fff" }} />,
+  },
+  {
+    key: "manage-nurses",
+    label: "Manage Nurses",
+    icon: <LocalHospital style={{ color: "#fff" }} />,
+  },
+  {
+    key: "manage-department",
+    label: "Manage Department",
+    icon: <Apartment style={{ color: "#fff" }} />,
+  },
+  {
+    key: "manage-lablotry",
+    label: "Manage Laboratory",
+    icon: <Science style={{ color: "#fff" }} />,
+  },
+  {
+    key: "manage-appointment",
+    label: "Manage Appointment",
+    icon: <EventNote style={{ color: "#fff" }} />,
+  },
+  {
+    key: "manage-patientAdmit",
+    label: "Manage Patient Admit",
+    icon: <Hotel style={{ color: "#fff" }} />,
+  },
+  {
+    key: "settings",
+    label: "Settings",
+    icon: <Settings style={{ color: "#fff" }} />,
+  },
+];
 
 function AdminProfile() {
   const [userData, setUserData] = useState({});
@@ -37,7 +93,6 @@ function AdminProfile() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Fetch admin data
   const getAdminData = async () => {
     try {
       const data = await fetchAdminData();
@@ -59,12 +114,18 @@ function AdminProfile() {
     setActiveComponent(component);
   };
 
-  if (loading) return <Typography>Loading...</Typography>;
+  if (loading)
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
     <div>
       <CssBaseline />
+
       {/* Top Navbar */}
       <AppBar position="sticky">
         <Toolbar>
@@ -91,9 +152,8 @@ function AdminProfile() {
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar and Main Content Layout */}
+      {/* Sidebar and Main Content */}
       <Box sx={{ display: "flex" }}>
-        {/* Sidebar */}
         <Drawer
           variant="permanent"
           sx={{
@@ -106,52 +166,27 @@ function AdminProfile() {
               height: "100vh",
               backgroundColor: "#2C3E50",
               color: "#fff",
+              top: "64px", // keep drawer below AppBar (AppBar default height 64px)
             },
           }}
         >
-          <List sx={{ top: 50 }}>
-            <ListItem
-              button
-              onClick={() => handleSidebarClick("manage-patients")}
-              sx={{
-                backgroundColor:
-                  activeComponent === "manage-patients" ? "#2980B9" : "transparent",
-                "&:hover": { backgroundColor: "#34495E" },
-              }}
-            >
-              <ListItemIcon>
-                <PersonAdd style={{ color: "#fff" }} />
-              </ListItemIcon>
-              <ListItemText primary="Manage Patients" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => handleSidebarClick("manage-doctors")}
-              sx={{
-                backgroundColor:
-                  activeComponent === "manage-doctors" ? "#2980B9" : "transparent",
-                "&:hover": { backgroundColor: "#34495E" },
-              }}
-            >
-              <ListItemIcon>
-                <Assignment style={{ color: "#fff" }} />
-              </ListItemIcon>
-              <ListItemText primary="Manage Doctors" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => handleSidebarClick("settings")}
-              sx={{
-                backgroundColor:
-                  activeComponent === "settings" ? "#2980B9" : "transparent",
-                "&:hover": { backgroundColor: "#34495E" },
-              }}
-            >
-              <ListItemIcon>
-                <Settings style={{ color: "#fff" }} />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </ListItem>
+          <List sx={{ mt: 2 }}>
+            {sidebarItems.map(({ key, label, icon }) => (
+              <ListItem
+                button
+                key={key}
+                onClick={() => handleSidebarClick(key)}
+                sx={{
+                  backgroundColor:
+                    activeComponent === key ? "#2980B9" : "transparent",
+                  "&:hover": { backgroundColor: "#34495E" },
+                }}
+                aria-current={activeComponent === key ? "page" : undefined}
+              >
+                <ListItemIcon>{icon}</ListItemIcon>
+                <ListItemText primary={label} />
+              </ListItem>
+            ))}
           </List>
         </Drawer>
 
@@ -162,17 +197,22 @@ function AdminProfile() {
             flexGrow: 1,
             marginLeft: "240px",
             padding: "16px",
+            mt: 2,
           }}
         >
           <Container maxWidth="md">
             {activeComponent === "manage-patients" && <ViewPatientTable />}
             {activeComponent === "manage-doctors" && <ViewDoctorTable />}
             {activeComponent === "manage-staff" && <ViewStaffTable />}
-            {activeComponent === "manage-nures" && <ViewNuresTable />}
+            {activeComponent === "manage-nurses" && <ViewNursesTable />}
             {activeComponent === "manage-department" && <ViewDepartmentTable />}
             {activeComponent === "manage-lablotry" && <ViewLablotryTable />}
-            {activeComponent === "manage-appointment" && <ViewAppointmentTable />}
-            {activeComponent === "manage-patientAdmit" && <ViewPatientAdmitTable />}
+            {activeComponent === "manage-appointment" && (
+              <ViewAppointmentTable />
+            )}
+            {activeComponent === "manage-patientAdmit" && (
+              <ViewPatientAdmitTable />
+            )}
             {activeComponent === "settings" && <SettingsComponent />}
           </Container>
         </Box>

@@ -27,6 +27,9 @@ import LogoutButton from "./LogoutButton";
 import { useNavigate } from "react-router-dom";
 import { fetchPatientDetails } from "../services/patientService";
 
+import Feedback from "../components/patient/Feedback";
+import FeedbackIcon from "@mui/icons-material/Feedback"; // new icon for sidebar
+
 function PatientProfile() {
   const [userData, setUserData] = useState({});
   const [activeComponent, setActiveComponent] = useState("profile");
@@ -49,10 +52,9 @@ function PatientProfile() {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-useEffect(() => {
-  getPatientData();
-}, []);
-
+  useEffect(() => {
+    getPatientData();
+  }, []);
 
   const handleSidebarClick = (component) => {
     setActiveComponent(component);
@@ -108,7 +110,7 @@ useEffect(() => {
             },
           }}
         >
-          <List sx={{top:50}}>
+          <List sx={{ top: 50 }}>
             <ListItem
               button
               onClick={() => handleSidebarClick("profile")}
@@ -129,7 +131,9 @@ useEffect(() => {
               onClick={() => handleSidebarClick("book-appointment")}
               sx={{
                 backgroundColor:
-                  activeComponent === "book-appointment" ? "#2980B9" : "transparent",
+                  activeComponent === "book-appointment"
+                    ? "#2980B9"
+                    : "transparent",
                 "&:hover": { backgroundColor: "#34495E" },
               }}
             >
@@ -144,7 +148,9 @@ useEffect(() => {
               onClick={() => handleSidebarClick("view-appointments")}
               sx={{
                 backgroundColor:
-                  activeComponent === "view-appointments" ? "#2980B9" : "transparent",
+                  activeComponent === "view-appointments"
+                    ? "#2980B9"
+                    : "transparent",
                 "&:hover": { backgroundColor: "#34495E" },
               }}
             >
@@ -159,7 +165,9 @@ useEffect(() => {
               onClick={() => handleSidebarClick("medical-history")}
               sx={{
                 backgroundColor:
-                  activeComponent === "medical-history" ? "#2980B9" : "transparent",
+                  activeComponent === "medical-history"
+                    ? "#2980B9"
+                    : "transparent",
                 "&:hover": { backgroundColor: "#34495E" },
               }}
             >
@@ -174,7 +182,9 @@ useEffect(() => {
               onClick={() => handleSidebarClick("prescriptions")}
               sx={{
                 backgroundColor:
-                  activeComponent === "prescriptions" ? "#2980B9" : "transparent",
+                  activeComponent === "prescriptions"
+                    ? "#2980B9"
+                    : "transparent",
                 "&:hover": { backgroundColor: "#34495E" },
               }}
             >
@@ -182,6 +192,21 @@ useEffect(() => {
                 <LocalPharmacy style={{ color: "#fff" }} />
               </ListItemIcon>
               <ListItemText primary="Prescriptions" />
+            </ListItem>
+
+            <ListItem
+              button
+              onClick={() => handleSidebarClick("feedback")}
+              sx={{
+                backgroundColor:
+                  activeComponent === "feedback" ? "#2980B9" : "transparent",
+                "&:hover": { backgroundColor: "#34495E" },
+              }}
+            >
+              <ListItemIcon>
+                <FeedbackIcon style={{ color: "#fff" }} />
+              </ListItemIcon>
+              <ListItemText primary="Feedback" />
             </ListItem>
           </List>
         </Drawer>
@@ -196,11 +221,14 @@ useEffect(() => {
           }}
         >
           <Container maxWidth="md">
-            {activeComponent === "profile" && <PatientDetails userData={userData} />}
+            {activeComponent === "profile" && (
+              <PatientDetails userData={userData} />
+            )}
             {activeComponent === "book-appointment" && <BookAppointment />}
             {activeComponent === "view-appointments" && <ViewAppointments />}
             {activeComponent === "medical-history" && <MedicalHistory />}
             {activeComponent === "prescriptions" && <Prescriptions />}
+            {activeComponent === "feedback" && <Feedback />}
           </Container>
         </Box>
       </Box>
