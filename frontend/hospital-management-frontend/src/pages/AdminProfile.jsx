@@ -17,12 +17,13 @@ import {
   PersonAdd,
   Assignment,
   Settings,
-  Group, // Staff icon
-  LocalHospital, // Nurses icon
-  Apartment, // Department icon (example)
-  Science, // Laboratory icon (example)
-  EventNote, // Appointment icon (example)
-  Hotel, // Patient Admit icon (example)
+  Group,
+  LocalHospital,
+  Apartment,
+  Science,
+  EventNote,
+  Hotel,
+  Feedback as FeedbackIcon,
 } from "@mui/icons-material";
 
 import ViewPatientTable from "../components/tables/ViewPatientTable";
@@ -33,11 +34,13 @@ import ViewDepartmentTable from "../components/tables/ViewDepartmentTable";
 import ViewLablotryTable from "../components/tables/ViewLablotryTable";
 import ViewAppointmentTable from "../components/tables/ViewAppointmentTable";
 import ViewPatientAdmitTable from "../components/tables/ViewPatientAdmitTable";
+import ViewFeedbackTable from "../components/admin/FeedbackList.jsx";
 import SettingsComponent from "../components/admin/Settings";
 import LogoutButton from "./LogoutButton";
 import { useNavigate } from "react-router-dom";
 import { fetchAdminData } from "../services/adminService";
 
+// Sidebar items
 const sidebarItems = [
   {
     key: "manage-patients",
@@ -78,6 +81,11 @@ const sidebarItems = [
     key: "manage-patientAdmit",
     label: "Manage Patient Admit",
     icon: <Hotel style={{ color: "#fff" }} />,
+  },
+  {
+    key: "view-feedback",
+    label: "View Feedback",
+    icon: <FeedbackIcon style={{ color: "#fff" }} />,
   },
   {
     key: "settings",
@@ -136,7 +144,6 @@ function AdminProfile() {
             <img
               src="https://cdn1.iconfinder.com/data/icons/doctor-5/100/01-1Patient_1-1024.png"
               alt="Admin"
-              className="profile-img"
               style={{
                 borderRadius: "50%",
                 width: 40,
@@ -166,7 +173,7 @@ function AdminProfile() {
               height: "100vh",
               backgroundColor: "#2C3E50",
               color: "#fff",
-              top: "64px", // keep drawer below AppBar (AppBar default height 64px)
+              top: "64px",
             },
           }}
         >
@@ -213,6 +220,7 @@ function AdminProfile() {
             {activeComponent === "manage-patientAdmit" && (
               <ViewPatientAdmitTable />
             )}
+            {activeComponent === "view-feedback" && <ViewFeedbackTable />}
             {activeComponent === "settings" && <SettingsComponent />}
           </Container>
         </Box>

@@ -10,9 +10,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.hospital.dto.request.DoctorRequest;
+import com.hospital.dto.response.DoctorNameResponse;
 import com.hospital.dto.response.DoctorResponse;
 import com.hospital.exception.EmailAlreadyExistsException;
 import com.hospital.security.SecurityUtil;
@@ -30,7 +38,7 @@ public class DoctorController {
 	private DoctorService doctorService;
 
 	@Autowired
-	private  SecurityUtil securityUtil;
+	private SecurityUtil securityUtil;
 
 	@PostMapping("/registerDoctor")
 	public ResponseEntity<?> registerDoctor(@Valid @RequestBody DoctorRequest request) {
@@ -106,6 +114,11 @@ public class DoctorController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("An error occurred while fetching your details");
 		}
+	}
+
+	@GetMapping("/fetchAllDoctorNames")
+	public ResponseEntity<List<DoctorNameResponse>> getAllDoctorNames() {
+		return ResponseEntity.ok(doctorService.fetchAllDoctorNames());
 	}
 
 	@PutMapping("/update/{email}")

@@ -3,6 +3,7 @@ package com.hospital.service;
 import java.util.List;
 
 import com.hospital.dto.request.DoctorRequest;
+import com.hospital.dto.response.DoctorNameResponse;
 import com.hospital.dto.response.DoctorResponse;
 
 public interface DoctorService {
@@ -16,5 +17,7 @@ public interface DoctorService {
 	public DoctorResponse updateDoctor(String eamil, DoctorResponse request);
 
 	public boolean deleteDoctor(String email);
+
+	public List<DoctorNameResponse> fetchAllDoctorNames();
 
 }

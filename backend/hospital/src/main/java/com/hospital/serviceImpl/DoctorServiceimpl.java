@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hospital.dto.request.DoctorRequest;
+import com.hospital.dto.response.DoctorNameResponse;
 import com.hospital.dto.response.DoctorResponse;
 import com.hospital.entity.Doctor;
 import com.hospital.entity.User;
@@ -105,6 +106,14 @@ public class DoctorServiceimpl implements DoctorService {
 		response.setSpecialization(doctor.getSpecialization());
 		response.setBloodGroup(doctor.getBloodGroup());
 		return response;
+	}
+
+	@Override
+	public List<DoctorNameResponse> fetchAllDoctorNames() {
+		return doctorRepository.findAll().stream()
+				.map(doctor -> new DoctorNameResponse(
+						doctor.getFirstName() + " " + doctor.getLastName() + "-" + doctor.getSpecialization()))
+				.collect(Collectors.toList());
 	}
 
 	@Override

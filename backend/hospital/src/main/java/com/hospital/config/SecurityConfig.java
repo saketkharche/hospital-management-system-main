@@ -47,7 +47,7 @@ public class SecurityConfig {
 																											// preflight
 																											// requests
 						.requestMatchers("/", "/hospital/**", "/home", "/api/login", "/api/patients/register",
-								"/api/appointments")
+								"/api/appointments", "/api/feedback", "/api/doctors/fetchAllDoctorNames")
 						.permitAll().requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 						.requestMatchers("/api/doctor/**").hasAnyAuthority("ROLE_DOCTOR", "ROLE_ADMIN")
 						.requestMatchers("/api/nurse/**").hasAuthority("ROLE_NURSE").requestMatchers("/api/staff/**")

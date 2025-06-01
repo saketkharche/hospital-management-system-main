@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -15,15 +16,26 @@ import {
 import { DatePicker } from "@mui/x-date-pickers";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { useNavigate } from "react-router-dom";
+
+// CSS for animation
+const styles = {
+  fadeIn: {
+    animation: "fadeIn 0.5s ease-in",
+  },
+  keyframes: `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `,
+};
 
 const BookAppointment = () => {
   const [doctors, setDoctors] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState({
     doctorId: "",
@@ -38,29 +50,13 @@ const BookAppointment = () => {
 
   const fetchDoctors = async () => {
     try {
-      const mockDoctors = [
-        {
-          id: 1,
-          firstName: "John",
-          lastName: "Doe",
-          specialization: "Cardiologist",
-        },
-        {
-          id: 2,
-          firstName: "Jane",
-          lastName: "Smith",
-          specialization: "Dermatologist",
-        },
-        {
-          id: 3,
-          firstName: "Alice",
-          lastName: "Brown",
-          specialization: "Orthopedic",
-        },
-      ];
-      setDoctors(mockDoctors);
+      const response = await axios.get(
+        "http://localhost:8080/hospital/api/doctors/fetchAllDoctorNames"
+      );
+      setDoctors(response.data);
     } catch (err) {
-      setError("Failed to fetch doctors");
+      setError("Failed to load doctors. Please try again later.");
+      console.error("Error fetching doctors:", err);
     }
   };
 
@@ -82,18 +78,17 @@ const BookAppointment = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setSuccess("");
+    setSuccessMessage("");
 
     try {
-      // Mock success response
+      // Simulate API call
       const response = { data: { success: true } };
-      if (!response) {
-        throw new Error("Failed to book appointment");
-      }
-      setSuccess("Appointment booked successfully!");
-      setTimeout(() => {
-        navigate("/view-appointments");
-      }, 2000);
+      if (!response) throw new Error("Failed to book appointment");
+
+      // Show success message
+      setSuccessMessage(
+        "✅ Your appointment is booked. You will be notified shortly!"
+      );
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to book appointment");
     } finally {
@@ -105,6 +100,8 @@ const BookAppointment = () => {
     <Box
       sx={{ p: 3, maxWidth: 600, mx: "auto", boxShadow: 3, borderRadius: 2 }}
     >
+      <style>{styles.keyframes}</style>
+
       <Typography variant="h5" gutterBottom>
         Book an Appointment
       </Typography>
@@ -114,34 +111,52 @@ const BookAppointment = () => {
           {error}
         </Alert>
       )}
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
+
+      {/* Animated Success Message */}
+      {successMessage && (
+        <Box
+          sx={{
+            backgroundColor: "#d4edda",
+            color: "#155724",
+            padding: "16px",
+            borderRadius: "4px",
+            marginBottom: "16px",
+            textAlign: "center",
+            ...styles.fadeIn,
+          }}
+        >
+          <Typography variant="body1">{successMessage}</Typography>
+        </Box>
       )}
 
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
+          {/* Doctor Selection */}
           <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Select Doctor</InputLabel>
+            <FormControl fullWidth required>
+              <InputLabel id="doctor-label">Select Doctor</InputLabel>
               <Select
+                labelId="doctor-label"
                 value={formData.doctorId}
                 onChange={(e) =>
                   setFormData({ ...formData, doctorId: e.target.value })
                 }
-                required
+                label="Select Doctor"
               >
-                {doctors.map((doctor) => (
-                  <MenuItem key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.firstName} {doctor.lastName} -{" "}
-                    {doctor.specialization}
-                  </MenuItem>
-                ))}
+                {doctors.length > 0 ? (
+                  doctors.map((doctor, index) => (
+                    <MenuItem key={index} value={doctor.name}>
+                      {doctor.name} - {doctor.specialization}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No doctors found</MenuItem>
+                )}
               </Select>
             </FormControl>
           </Grid>
 
+          {/* Date Picker */}
           <Grid item xs={12}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
@@ -155,32 +170,33 @@ const BookAppointment = () => {
             </LocalizationProvider>
           </Grid>
 
+          {/* Time Slot Dropdown */}
           <Grid item xs={12}>
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
               <InputLabel>Select Time Slot</InputLabel>
               <Select
                 value={formData.timeSlot}
                 onChange={(e) =>
                   setFormData({ ...formData, timeSlot: e.target.value })
                 }
-                required
                 disabled={timeSlots.length === 0}
               >
                 {timeSlots.length > 0 ? (
-                  timeSlots.map((slot) => (
-                    <MenuItem key={slot} value={slot}>
+                  timeSlots.map((slot, index) => (
+                    <MenuItem key={index} value={slot}>
                       {slot}
                     </MenuItem>
                   ))
                 ) : (
                   <MenuItem value="" disabled>
-                    No slots available
+                    No available slots
                   </MenuItem>
                 )}
               </Select>
             </FormControl>
           </Grid>
 
+          {/* Reason for Visit */}
           <Grid item xs={12}>
             <TextField
               fullWidth
@@ -195,12 +211,13 @@ const BookAppointment = () => {
             />
           </Grid>
 
+          {/* Submit Button */}
           <Grid item xs={12}>
             <Button
               type="submit"
               variant="contained"
               fullWidth
-              disabled={loading}
+              disabled={loading || !formData.timeSlot}
             >
               {loading ? <CircularProgress size={24} /> : "Book Appointment"}
             </Button>
