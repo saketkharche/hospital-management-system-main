@@ -46,7 +46,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 🔓 Allow
 																											// preflight
 																											// requests
-						.requestMatchers("/", "/hospital/**", "/home", "/api/login", "/api/patients/register")
+						.requestMatchers("/", "/hospital/**", "/home", "/api/login", "/api/patients/register",
+								"/api/appointments")
 						.permitAll().requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 						.requestMatchers("/api/doctor/**").hasAnyAuthority("ROLE_DOCTOR", "ROLE_ADMIN")
 						.requestMatchers("/api/nurse/**").hasAuthority("ROLE_NURSE").requestMatchers("/api/staff/**")
