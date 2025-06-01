@@ -18,6 +18,10 @@ import {
   Select,
   MenuItem,
   TablePagination,
+  Grid,
+  FormHelperText,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -53,6 +57,7 @@ function ViewDoctorTable() {
     bloodGroup: "",
   });
 
+  const [formErrors, setFormErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [showError, setShowError] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -68,38 +73,47 @@ function ViewDoctorTable() {
     "Psychiatry",
     "General Medicine",
   ];
+  const genders = ["Male", "Female", "Other"];
 
-  // Validation function
   const validateDoctorForm = () => {
     const errors = {};
 
-    if (!currentDoctor.firstName) errors.firstName = "First name is required";
-    if (!currentDoctor.lastName) errors.lastName = "Last name is required";
-    if (!currentDoctor.email) errors.email = "Email is required";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentDoctor.email)) {
+    if (!currentDoctor.firstName.trim())
+      errors.firstName = "First name is required";
+    if (!currentDoctor.lastName.trim())
+      errors.lastName = "Last name is required";
+
+    if (!currentDoctor.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentDoctor.email)) {
       errors.email = "Invalid email format";
     }
-    if (!currentDoctor.phoneNumber)
+
+    if (!currentDoctor.phoneNumber.trim())
       errors.phoneNumber = "Phone number is required";
+    if (!currentDoctor.gender) errors.gender = "Gender is required";
+    if (!currentDoctor.dateOfBirth)
+      errors.dateOfBirth = "Date of birth is required";
+
+    if (!currentDoctor.city.trim()) errors.city = "City is required";
+    if (!currentDoctor.state.trim()) errors.state = "State is required";
+    if (!currentDoctor.country.trim()) errors.country = "Country is required";
+
     if (!currentDoctor.specialization)
       errors.specialization = "Specialization is required";
     if (!currentDoctor.bloodGroup)
       errors.bloodGroup = "Blood group is required";
     if (!currentDoctor.joiningDate)
       errors.joiningDate = "Joining date is required";
-    if (formMode === "add" && !currentDoctor.password) {
+
+    if (formMode === "add" && !currentDoctor.password.trim()) {
       errors.password = "Password is required";
     }
 
-    if (Object.keys(errors).length > 0) {
-      setErrorMessage(Object.values(errors).join(", "));
-      setShowError(true);
-      return false;
-    }
-    return true;
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  // Handle pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -109,7 +123,6 @@ function ViewDoctorTable() {
     setPage(0);
   };
 
-  // Fetch doctors on component mount
   useEffect(() => {
     const loadDoctors = async () => {
       try {
@@ -117,14 +130,12 @@ function ViewDoctorTable() {
         setDoctors(data);
         setFilteredDoctors(data);
       } catch (error) {
-        setErrorMessage("Failed to fetch doctors: " + error.message);
-        setShowError(true);
+        showErrorMessage("Failed to fetch doctors: " + error.message);
       }
     };
     loadDoctors();
   }, []);
 
-  // Search functionality
   const handleSearchChange = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
@@ -138,9 +149,9 @@ function ViewDoctorTable() {
     setFilteredDoctors(filtered);
   };
 
-  // Modal handlers
   const handleOpenModal = (mode, doctor = null) => {
     setFormMode(mode);
+    setFormErrors({});
     if (mode === "edit" && doctor) {
       setCurrentDoctor({
         ...doctor,
@@ -169,7 +180,7 @@ function ViewDoctorTable() {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setErrorMessage("");
+    setFormErrors({});
   };
 
   const handleInputChange = (e) => {
@@ -180,32 +191,39 @@ function ViewDoctorTable() {
     }));
   };
 
-  // Submit handler
+  const showSuccessMessage = (msg) => {
+    setSuccessMessage(msg);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 4000);
+  };
+
+  const showErrorMessage = (msg) => {
+    setErrorMessage(msg);
+    setShowError(true);
+    setTimeout(() => setShowError(false), 4000);
+  };
+
   const handleSubmit = async () => {
     if (!validateDoctorForm()) return;
 
     try {
       if (formMode === "add") {
         await registerDoctor(currentDoctor);
-        setSuccessMessage("Doctor registered successfully!");
+        showSuccessMessage("Doctor registered successfully!");
       } else {
         await updateDoctor(currentDoctor.email, currentDoctor);
-        setSuccessMessage("Doctor updated successfully!");
+        showSuccessMessage("Doctor updated successfully!");
       }
 
-      // Refresh the doctors list
       const updatedDoctors = await fetchAllDoctors();
       setDoctors(updatedDoctors);
       setFilteredDoctors(updatedDoctors);
-      setShowSuccess(true);
       handleCloseModal();
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || "Operation failed");
-      setShowError(true);
+      showErrorMessage(error.response?.data?.message || "Operation failed");
     }
   };
 
-  // Delete handler
   const handleDeleteDoctor = async (email) => {
     if (window.confirm("Are you sure you want to delete this doctor?")) {
       try {
@@ -213,13 +231,11 @@ function ViewDoctorTable() {
         const updatedDoctors = await fetchAllDoctors();
         setDoctors(updatedDoctors);
         setFilteredDoctors(updatedDoctors);
-        setSuccessMessage("Doctor deleted successfully!");
-        setShowSuccess(true);
+        showSuccessMessage("Doctor deleted successfully!");
       } catch (error) {
-        setErrorMessage(
+        showErrorMessage(
           error.response?.data?.message || "Failed to delete doctor"
         );
-        setShowError(true);
       }
     }
   };
@@ -228,7 +244,6 @@ function ViewDoctorTable() {
     <div className="mt-5">
       <h4>Doctor Details</h4>
 
-      {/* Search Field */}
       <TextField
         label="Search by name, email, or specialization"
         variant="outlined"
@@ -241,7 +256,6 @@ function ViewDoctorTable() {
         style={{ marginBottom: "20px" }}
       />
 
-      {/* Add Doctor Button */}
       <Button
         variant="contained"
         color="primary"
@@ -251,9 +265,8 @@ function ViewDoctorTable() {
         Add Doctor
       </Button>
 
-      {/* Doctor Table */}
       <TableContainer>
-        <Table sx={{ minWidth: 800 }} aria-label="doctor table">
+        <Table>
           <TableHead>
             <TableRow>
               <TableCell>Doctor ID</TableCell>
@@ -307,7 +320,6 @@ function ViewDoctorTable() {
         </Table>
       </TableContainer>
 
-      {/* Pagination */}
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
@@ -318,7 +330,6 @@ function ViewDoctorTable() {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
 
-      {/* Add/Edit Doctor Modal */}
       <Dialog
         open={showModal}
         onClose={handleCloseModal}
@@ -329,139 +340,150 @@ function ViewDoctorTable() {
           {formMode === "add" ? "Add New Doctor" : "Edit Doctor"}
         </DialogTitle>
         <DialogContent>
-          <TextField
-            label="First Name"
-            name="firstName"
-            value={currentDoctor.firstName}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Last Name"
-            name="lastName"
-            value={currentDoctor.lastName}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Email"
-            name="email"
-            value={currentDoctor.email}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-            disabled={formMode === "edit"}
-          />
-          <TextField
-            label="Phone Number"
-            name="phoneNumber"
-            value={currentDoctor.phoneNumber}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Gender"
-            name="gender"
-            value={currentDoctor.gender}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Date of Birth"
-            name="dateOfBirth"
-            value={currentDoctor.dateOfBirth}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="City"
-            name="city"
-            value={currentDoctor.city}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="State"
-            name="state"
-            value={currentDoctor.state}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Country"
-            name="country"
-            value={currentDoctor.country}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          {formMode === "add" && (
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              value={currentDoctor.password}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-            />
-          )}
-          {/* ... Other basic fields similar to patient form ... */}
-
-          {/* Doctor-specific fields */}
-          <Select
-            label="Specialization"
-            name="specialization"
-            value={currentDoctor.specialization}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          >
-            {specializations.map((spec) => (
-              <MenuItem key={spec} value={spec}>
-                {spec}
-              </MenuItem>
+          <Grid container spacing={2}>
+            {[
+              ["firstName", "First Name"],
+              ["lastName", "Last Name"],
+              ["email", "Email", formMode === "edit"],
+              ["phoneNumber", "Phone Number"],
+              ["city", "City"],
+              ["state", "State"],
+              ["country", "Country"],
+            ].map(([name, label, disabled]) => (
+              <Grid item xs={12} sm={6} key={name}>
+                <TextField
+                  label={label}
+                  name={name}
+                  value={currentDoctor[name]}
+                  onChange={handleInputChange}
+                  fullWidth
+                  disabled={disabled}
+                  error={!!formErrors[name]}
+                  helperText={formErrors[name]}
+                />
+              </Grid>
             ))}
-          </Select>
 
-          <Select
-            label="Blood Group"
-            name="bloodGroup"
-            value={currentDoctor.bloodGroup}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          >
-            {bloodGroups.map((group) => (
-              <MenuItem key={group} value={group}>
-                {group}
-              </MenuItem>
-            ))}
-          </Select>
+            {formMode === "add" && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Password"
+                  name="password"
+                  type="password"
+                  value={currentDoctor.password}
+                  onChange={handleInputChange}
+                  fullWidth
+                  error={!!formErrors.password}
+                  helperText={formErrors.password}
+                />
+              </Grid>
+            )}
 
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <DatePicker
-              label="Joining Date"
-              value={currentDoctor.joiningDate}
-              onChange={(newValue) => {
-                setCurrentDoctor((prev) => ({
-                  ...prev,
-                  joiningDate: newValue,
-                }));
-              }}
-              renderInput={(params) => (
-                <TextField {...params} fullWidth margin="normal" />
-              )}
-            />
-          </LocalizationProvider>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!!formErrors.gender}>
+                <InputLabel>Gender</InputLabel>
+                <Select
+                  name="gender"
+                  value={currentDoctor.gender}
+                  onChange={handleInputChange}
+                  label="Gender"
+                >
+                  {genders.map((g) => (
+                    <MenuItem key={g} value={g}>
+                      {g}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>{formErrors.gender}</FormHelperText>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Date of Birth"
+                  value={currentDoctor.dateOfBirth}
+                  onChange={(newVal) =>
+                    setCurrentDoctor((prev) => ({
+                      ...prev,
+                      dateOfBirth: newVal,
+                    }))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      error={!!formErrors.dateOfBirth}
+                      helperText={formErrors.dateOfBirth}
+                    />
+                  )}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!!formErrors.specialization}>
+                <InputLabel>Specialization</InputLabel>
+                <Select
+                  name="specialization"
+                  value={currentDoctor.specialization}
+                  onChange={handleInputChange}
+                  label="Specialization"
+                >
+                  {specializations.map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {s}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>{formErrors.specialization}</FormHelperText>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!!formErrors.bloodGroup}>
+                <InputLabel>Blood Group</InputLabel>
+                <Select
+                  name="bloodGroup"
+                  value={currentDoctor.bloodGroup}
+                  onChange={handleInputChange}
+                  label="Blood Group"
+                >
+                  {bloodGroups.map((bg) => (
+                    <MenuItem key={bg} value={bg}>
+                      {bg}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>{formErrors.bloodGroup}</FormHelperText>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Joining Date"
+                  value={currentDoctor.joiningDate}
+                  onChange={(newVal) =>
+                    setCurrentDoctor((prev) => ({
+                      ...prev,
+                      joiningDate: newVal,
+                    }))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      error={!!formErrors.joiningDate}
+                      helperText={formErrors.joiningDate}
+                    />
+                  )}
+                />
+              </LocalizationProvider>
+            </Grid>
+          </Grid>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={handleCloseModal}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
@@ -470,23 +492,24 @@ function ViewDoctorTable() {
         </DialogActions>
       </Dialog>
 
-      {/* Success and Error Snackbars */}
       <Snackbar
         open={showSuccess}
-        autoHideDuration={6000}
+        autoHideDuration={4000}
         onClose={() => setShowSuccess(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <Alert severity="success">{successMessage}</Alert>
+        <Alert severity="success" onClose={() => setShowSuccess(false)}>
+          {successMessage}
+        </Alert>
       </Snackbar>
 
       <Snackbar
         open={showError}
-        autoHideDuration={6000}
+        autoHideDuration={4000}
         onClose={() => setShowError(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <Alert severity="error">{errorMessage}</Alert>
+        <Alert severity="error" onClose={() => setShowError(false)}>
+          {errorMessage}
+        </Alert>
       </Snackbar>
     </div>
   );

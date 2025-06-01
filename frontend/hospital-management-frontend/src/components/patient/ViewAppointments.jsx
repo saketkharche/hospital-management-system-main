@@ -17,7 +17,7 @@ const ViewAppointments = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/appointments")
+      .get("http://localhost:8080/hospital/api/appointments")
       .then((res) => {
         setAppointments(res.data);
       })
