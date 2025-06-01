@@ -11,7 +11,6 @@ import {
   InputLabel,
   Select,
   Alert,
-  CircularProgress,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -42,8 +41,10 @@ const BookAppointment = () => {
     appointmentDate: null,
     timeSlot: "",
     reason: "",
+    patientName: "",
   });
 
+  // Fetch doctors on mount
   useEffect(() => {
     fetchDoctors();
   }, []);
@@ -74,21 +75,56 @@ const BookAppointment = () => {
     generateTimeSlots(date);
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccessMessage("");
 
-    try {
-      // Simulate API call
-      const response = { data: { success: true } };
-      if (!response) throw new Error("Failed to book appointment");
+    if (
+      !formData.patientName ||
+      !formData.doctorId ||
+      !formData.appointmentDate ||
+      !formData.timeSlot
+    ) {
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
 
-      // Show success message
-      setSuccessMessage(
-        "✅ Your appointment is booked. You will be notified shortly!"
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/hospital/api/appointments",
+        {
+          patientName: formData.patientName,
+          doctorName: formData.doctorId,
+          date: formData.appointmentDate.toISOString().split("T")[0],
+          time: formData.timeSlot,
+          reason: formData.reason,
+        }
       );
+
+      if (response.status === 201) {
+        setSuccessMessage(
+          "✅ Your appointment is booked. You will be notified shortly!"
+        );
+        // Optionally reset form
+        setFormData({
+          doctorId: "",
+          appointmentDate: null,
+          timeSlot: "",
+          reason: "",
+          patientName: "",
+        });
+      }
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to book appointment");
     } finally {
@@ -98,7 +134,13 @@ const BookAppointment = () => {
 
   return (
     <Box
-      sx={{ p: 3, maxWidth: 600, mx: "auto", boxShadow: 3, borderRadius: 2 }}
+      sx={{
+        p: 3,
+        maxWidth: 600,
+        mx: "auto",
+        boxShadow: 3,
+        borderRadius: 2,
+      }}
     >
       <style>{styles.keyframes}</style>
 
@@ -106,13 +148,14 @@ const BookAppointment = () => {
         Book an Appointment
       </Typography>
 
+      {/* Error Message */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      {/* Animated Success Message */}
+      {/* Success Message */}
       {successMessage && (
         <Box
           sx={{
@@ -129,8 +172,22 @@ const BookAppointment = () => {
         </Box>
       )}
 
+      {/* Booking Form */}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
+          {/* Patient Name Field */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Patient Name"
+              name="patientName"
+              value={formData.patientName}
+              onChange={handleChange}
+              required
+              placeholder="Enter your full name"
+            />
+          </Grid>
+
           {/* Doctor Selection */}
           <Grid item xs={12}>
             <FormControl fullWidth required>
@@ -163,9 +220,10 @@ const BookAppointment = () => {
                 label="Appointment Date"
                 value={formData.appointmentDate}
                 onChange={handleDateChange}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth required />
+                )}
                 minDate={new Date()}
-                required
               />
             </LocalizationProvider>
           </Grid>
@@ -203,11 +261,9 @@ const BookAppointment = () => {
               label="Reason for Visit"
               multiline
               rows={4}
+              name="reason"
               value={formData.reason}
-              onChange={(e) =>
-                setFormData({ ...formData, reason: e.target.value })
-              }
-              required
+              onChange={handleChange}
             />
           </Grid>
 
@@ -219,7 +275,7 @@ const BookAppointment = () => {
               fullWidth
               disabled={loading || !formData.timeSlot}
             >
-              {loading ? <CircularProgress size={24} /> : "Book Appointment"}
+              {loading ? "Booking..." : "Book Appointment"}
             </Button>
           </Grid>
         </Grid>

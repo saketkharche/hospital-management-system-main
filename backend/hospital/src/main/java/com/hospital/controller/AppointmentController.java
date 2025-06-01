@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hospital.dto.request.AppointmentRequest;
 import com.hospital.entity.Appointment;
+import com.hospital.enums.Status;
 import com.hospital.service.AppointmentService;
 
 @RestController
@@ -29,7 +31,14 @@ public class AppointmentController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) {
+	public ResponseEntity<Appointment> createAppointment(@RequestBody AppointmentRequest request) {
+		Appointment appointment = new Appointment();
+		appointment.setPatientName(request.getPatientName());
+		appointment.setDoctorName(request.getDoctorName());
+		appointment.setDate(request.getDate());
+		appointment.setTime(request.getTime());
+		appointment.setStatus(Status.PENDING); // default status
+
 		return new ResponseEntity<>(appointmentService.createAppointment(appointment), HttpStatus.CREATED);
 	}
 }
