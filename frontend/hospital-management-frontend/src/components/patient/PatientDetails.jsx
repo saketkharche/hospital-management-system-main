@@ -164,7 +164,7 @@ const PatientDetails = ({ userData }) => {
             <CardMedia
               component="img"
               height="100%"
-              image="https://cdn1.iconfinder.com/data/icons/doctor-5/100/01-1Patient_1-1024.png"
+              image="https://cdn-icons-png.flaticon.com/512/4190/4190544.png"
               alt="Patient Image"
             />
           </Card>

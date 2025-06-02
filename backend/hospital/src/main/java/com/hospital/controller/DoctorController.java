@@ -20,8 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hospital.dto.request.DoctorRequest;
+import com.hospital.dto.request.PrescriptionRequest;
 import com.hospital.dto.response.DoctorNameResponse;
 import com.hospital.dto.response.DoctorResponse;
+import com.hospital.dto.response.PrescriptionResponse;
 import com.hospital.exception.EmailAlreadyExistsException;
 import com.hospital.security.SecurityUtil;
 import com.hospital.service.DoctorService;
@@ -119,6 +121,12 @@ public class DoctorController {
 	@GetMapping("/fetchAllDoctorNames")
 	public ResponseEntity<List<DoctorNameResponse>> getAllDoctorNames() {
 		return ResponseEntity.ok(doctorService.fetchAllDoctorNames());
+	}
+
+	@PostMapping("/issue-prescription")
+	public ResponseEntity<PrescriptionResponse> issuePrescription(@RequestBody PrescriptionRequest request) {
+		PrescriptionResponse response = doctorService.createPrescription(request);
+		return ResponseEntity.ok(response);
 	}
 
 	@PutMapping("/update/{email}")

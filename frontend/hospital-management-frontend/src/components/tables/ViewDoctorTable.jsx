@@ -287,8 +287,8 @@ function ViewDoctorTable() {
                 )
               : filteredDoctors
             ).map((doctor) => (
-              <TableRow key={doctor.doctorId}>
-                <TableCell>{doctor.doctorId}</TableCell>
+              <TableRow key={doctor.id}>
+                <TableCell>{doctor.id}</TableCell>
                 <TableCell>{`${doctor.firstName} ${doctor.lastName}`}</TableCell>
                 <TableCell>{doctor.specialization}</TableCell>
                 <TableCell>{doctor.email}</TableCell>

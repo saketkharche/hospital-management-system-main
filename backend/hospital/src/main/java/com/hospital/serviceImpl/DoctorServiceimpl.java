@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hospital.dto.request.DoctorRequest;
+import com.hospital.dto.request.PrescriptionRequest;
 import com.hospital.dto.response.DoctorNameResponse;
 import com.hospital.dto.response.DoctorResponse;
+import com.hospital.dto.response.PrescriptionResponse;
 import com.hospital.entity.Doctor;
 import com.hospital.entity.User;
 import com.hospital.exception.CustomInternalServerException;
@@ -132,5 +134,11 @@ public class DoctorServiceimpl implements DoctorService {
 
 		doctor = doctorRepository.save(doctor);
 		return convertToResponse(doctor);
+	}
+
+	@Override
+	public PrescriptionResponse createPrescription(PrescriptionRequest request) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

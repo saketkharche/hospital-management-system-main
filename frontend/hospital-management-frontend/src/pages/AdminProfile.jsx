@@ -30,17 +30,16 @@ import ViewPatientTable from "../components/tables/ViewPatientTable";
 import ViewDoctorTable from "../components/tables/ViewDoctorTable";
 import ViewStaffTable from "../components/tables/ViewStaffTable";
 import ViewNursesTable from "../components/tables/ViewNursesTable";
-import ViewDepartmentTable from "../components/tables/ViewDepartmentTable";
-import ViewLablotryTable from "../components/tables/ViewLablotryTable";
-import ViewAppointmentTable from "../components/tables/ViewAppointmentTable";
-import ViewPatientAdmitTable from "../components/tables/ViewPatientAdmitTable";
-import ViewFeedbackTable from "../components/admin/FeedbackList.jsx";
+import ManagerDepartment from "../components/admin/ManagerDepartment";
+import ViewLablotryTable from "../components/admin/ViewLablotryTable"; // ✅ Fixed import path
+import AdminViewAppointment from "../components/admin/AdminViewAppointment";
+import ViewPatientAdmitTable from "../components/admin/ViewPatientAdmitTable"; // ✅ Fixed import path
+import ViewFeedbackTable from "../components/admin/FeedbackList";
 import SettingsComponent from "../components/admin/Settings";
 import LogoutButton from "./LogoutButton";
 import { useNavigate } from "react-router-dom";
 import { fetchAdminData } from "../services/adminService";
 
-// Sidebar items
 const sidebarItems = [
   {
     key: "manage-patients",
@@ -134,7 +133,6 @@ function AdminProfile() {
     <div>
       <CssBaseline />
 
-      {/* Top Navbar */}
       <AppBar position="sticky">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -159,7 +157,6 @@ function AdminProfile() {
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar and Main Content */}
       <Box sx={{ display: "flex" }}>
         <Drawer
           variant="permanent"
@@ -197,29 +194,27 @@ function AdminProfile() {
           </List>
         </Drawer>
 
-        {/* Main Content */}
         <Box
           component="main"
-          sx={{
-            flexGrow: 1,
-            marginLeft: "240px",
-            padding: "16px",
-            mt: 2,
-          }}
+          sx={{ flexGrow: 1, marginLeft: "240px", padding: "16px", mt: 2 }}
         >
           <Container maxWidth="md">
             {activeComponent === "manage-patients" && <ViewPatientTable />}
             {activeComponent === "manage-doctors" && <ViewDoctorTable />}
             {activeComponent === "manage-staff" && <ViewStaffTable />}
             {activeComponent === "manage-nurses" && <ViewNursesTable />}
-            {activeComponent === "manage-department" && <ViewDepartmentTable />}
-            {activeComponent === "manage-lablotry" && <ViewLablotryTable />}
+            {activeComponent === "manage-department" && <ManagerDepartment />}
+            {activeComponent === "manage-lablotry" && (
+              <ViewLablotryTable />
+            )}{" "}
+            {/* ✅ Fixed */}
             {activeComponent === "manage-appointment" && (
-              <ViewAppointmentTable />
+              <AdminViewAppointment />
             )}
             {activeComponent === "manage-patientAdmit" && (
               <ViewPatientAdmitTable />
-            )}
+            )}{" "}
+            {/* ✅ Fixed */}
             {activeComponent === "view-feedback" && <ViewFeedbackTable />}
             {activeComponent === "settings" && <SettingsComponent />}
           </Container>
