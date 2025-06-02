@@ -29,8 +29,6 @@ function LoginPage() {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-
-  
   const handleLogin = async (e) => {
     e.preventDefault();
     setMessage(""); // Clear previous messages
@@ -59,8 +57,7 @@ function LoginPage() {
 
       // Store the token in sessionStorage
       sessionStorage.setItem("token", response.token);
-sessionStorage.setItem("token", response.token);
-console.log("Stored Token:", sessionStorage.getItem("token")); // Debugging
+
       console.log("Login successful:", response);
 
       // Role-based navigation using a dictionary
@@ -106,8 +103,8 @@ console.log("Stored Token:", sessionStorage.getItem("token")); // Debugging
         }}
       >
         <Avatar
-          src={`${process.env.PUBLIC_URL}/WebsiteLogo.png`}
-          alt="Website Logo"
+          src={`https://cdn-icons-png.flaticon.com/512/11523/11523600.png`}
+          alt="logo"
           sx={{ width: 80, height: 80, mx: "auto", mb: 2 }}
         />
         <Typography variant="h4" gutterBottom>

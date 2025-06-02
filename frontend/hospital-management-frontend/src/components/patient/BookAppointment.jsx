@@ -16,17 +16,19 @@ import { DatePicker } from "@mui/x-date-pickers";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
-// CSS for animation
-const styles = {
-  fadeIn: {
-    animation: "fadeIn 0.5s ease-in",
-  },
-  keyframes: `
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  `,
+// Function to retrieve logged-in user email from JWT stored in localStorage
+const getUserEmail = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return "";
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    console.log("Decoded Payload:", payload); // Debugging
+    return payload.sub || "";
+  } catch (err) {
+    console.error("Error decoding token:", err);
+    return "";
+  }
 };
 
 const BookAppointment = () => {
@@ -35,16 +37,15 @@ const BookAppointment = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
   const [formData, setFormData] = useState({
     doctorId: "",
     appointmentDate: null,
     timeSlot: "",
     reason: "",
     patientName: "",
+    email: getUserEmail(), // Auto-populate email
   });
 
-  // Fetch doctors on mount
   useEffect(() => {
     fetchDoctors();
   }, []);
@@ -61,7 +62,7 @@ const BookAppointment = () => {
     }
   };
 
-  const generateTimeSlots = (date) => {
+  const generateTimeSlots = () => {
     const slots = [];
     for (let hour = 9; hour < 17; hour++) {
       slots.push(`${hour}:00`);
@@ -72,7 +73,7 @@ const BookAppointment = () => {
 
   const handleDateChange = (date) => {
     setFormData({ ...formData, appointmentDate: date });
-    generateTimeSlots(date);
+    generateTimeSlots();
   };
 
   const handleChange = (e) => {
@@ -109,20 +110,22 @@ const BookAppointment = () => {
           date: formData.appointmentDate.toISOString().split("T")[0],
           time: formData.timeSlot,
           reason: formData.reason,
+          email: formData.email, // Include logged-in user's email
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-
+      console.log("Sending Appointment Data:", formData);
       if (response.status === 201) {
-        setSuccessMessage(
-          "✅ Your appointment is booked. You will be notified shortly!"
-        );
-        // Optionally reset form
+        setSuccessMessage("✅ Your appointment is booked successfully!");
         setFormData({
           doctorId: "",
           appointmentDate: null,
           timeSlot: "",
           reason: "",
           patientName: "",
+          email: getUserEmail(), // Keep email after reset
         });
       }
     } catch (err) {
@@ -134,28 +137,17 @@ const BookAppointment = () => {
 
   return (
     <Box
-      sx={{
-        p: 3,
-        maxWidth: 600,
-        mx: "auto",
-        boxShadow: 3,
-        borderRadius: 2,
-      }}
+      sx={{ p: 3, maxWidth: 600, mx: "auto", boxShadow: 3, borderRadius: 2 }}
     >
-      <style>{styles.keyframes}</style>
-
       <Typography variant="h5" gutterBottom>
         Book an Appointment
       </Typography>
 
-      {/* Error Message */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-
-      {/* Success Message */}
       {successMessage && (
         <Box
           sx={{
@@ -165,16 +157,24 @@ const BookAppointment = () => {
             borderRadius: "4px",
             marginBottom: "16px",
             textAlign: "center",
-            ...styles.fadeIn,
           }}
         >
           <Typography variant="body1">{successMessage}</Typography>
         </Box>
       )}
 
-      {/* Booking Form */}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
+          {/* Email Field - Non-editable */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Email (Auto-detected)"
+              value={formData.email}
+              disabled
+            />
+          </Grid>
+
           {/* Patient Name Field */}
           <Grid item xs={12}>
             <TextField
@@ -254,20 +254,6 @@ const BookAppointment = () => {
             </FormControl>
           </Grid>
 
-          {/* Reason for Visit */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Reason for Visit"
-              multiline
-              rows={4}
-              name="reason"
-              value={formData.reason}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          {/* Submit Button */}
           <Grid item xs={12}>
             <Button
               type="submit"

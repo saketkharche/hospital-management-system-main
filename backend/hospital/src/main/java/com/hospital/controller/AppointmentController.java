@@ -72,10 +72,15 @@ public class AppointmentController {
 	 * 🏥 **Patient Side:** Create a new appointment with email support.
 	 */
 	@PostMapping
-	public ResponseEntity<Appointment> createAppointment(@RequestBody AppointmentRequest request) {
+	public ResponseEntity<Appointment> createAppointment(@RequestBody AppointmentRequest request,
+			@AuthenticationPrincipal UserDetails userDetails) {
+		// Instead of relying on the frontend, get the authenticated user's email
+		// directly
+		String authenticatedEmail = userDetails.getUsername();
+
 		Appointment appointment = new Appointment();
 		appointment.setPatientName(request.getPatientName());
-		appointment.setPatientEmail(request.getPatientEmail()); // ✅ Added email support
+		appointment.setPatientEmail(authenticatedEmail); // Use authenticated email
 		appointment.setDoctorName(request.getDoctorName());
 		appointment.setDate(request.getDate());
 		appointment.setTime(request.getTime());
