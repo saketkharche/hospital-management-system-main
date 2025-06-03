@@ -2,6 +2,7 @@ package com.hospital.service;
 
 import java.util.List;
 
+import com.hospital.dto.response.AppointmentWithDoctorDTO;
 import com.hospital.entity.Appointment;
 
 public interface AppointmentService {
@@ -23,4 +24,8 @@ public interface AppointmentService {
 
 	// 🔹 Doctor Side: Update appointment status
 	Appointment updateAppointmentStatus(Long id, String status);
+
+	// New method
+	List<AppointmentWithDoctorDTO> getAppointmentsWithDoctorDetailsByEmail(String email);
+
 }

@@ -33,7 +33,7 @@ import ViewNursesTable from "../components/tables/ViewNursesTable";
 import ManagerDepartment from "../components/admin/ManagerDepartment";
 import ViewLablotryTable from "../components/admin/ViewLablotryTable"; // ✅ Fixed import path
 import AdminViewAppointment from "../components/admin/AdminViewAppointment";
-import ViewPatientAdmitTable from "../components/admin/ViewPatientAdmitTable"; // ✅ Fixed import path
+import ViewPatientAdmitTable from "../components/admin/ViewPatientAdmitTableDoc"; // ✅ Fixed import path
 import ViewFeedbackTable from "../components/admin/FeedbackList";
 import SettingsComponent from "../components/admin/Settings";
 import LogoutButton from "./LogoutButton";

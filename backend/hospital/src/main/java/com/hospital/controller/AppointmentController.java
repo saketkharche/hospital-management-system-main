@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hospital.dto.request.AppointmentRequest;
+import com.hospital.dto.response.AppointmentWithDoctorDTO;
 import com.hospital.entity.Appointment;
 import com.hospital.enums.Status;
 import com.hospital.service.AppointmentService;
@@ -58,6 +59,14 @@ public class AppointmentController {
 	public ResponseEntity<Appointment> updateAppointmentStatus(@PathVariable Long id, @RequestParam String status) {
 		Appointment updatedAppointment = appointmentService.updateAppointmentStatus(id, status);
 		return ResponseEntity.ok(updatedAppointment);
+	}
+
+	@GetMapping("/my-appointments/details")
+	public ResponseEntity<List<AppointmentWithDoctorDTO>> getUserAppointmentsWithDoctorDetails(
+			@AuthenticationPrincipal UserDetails userDetails) {
+		String email = userDetails.getUsername();
+		List<AppointmentWithDoctorDTO> appointments = appointmentService.getAppointmentsWithDoctorDetailsByEmail(email);
+		return ResponseEntity.ok(appointments);
 	}
 
 	/**
