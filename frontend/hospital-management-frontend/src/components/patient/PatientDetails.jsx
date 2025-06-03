@@ -7,8 +7,10 @@ import {
   Grid,
   Card,
   CardMedia,
+  Snackbar,
+  Alert,
 } from "@mui/material";
-import { validateForm } from "../../Javascript/validateForm"; // Assuming this function does validation
+import { validateForm } from "../../Javascript/validateForm";
 import { updatePatient } from "../../services/patientService";
 
 const PatientDetails = ({ userData }) => {
@@ -16,6 +18,11 @@ const PatientDetails = ({ userData }) => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const [formData, setFormData] = useState({
     patientId: "",
@@ -30,7 +37,6 @@ const PatientDetails = ({ userData }) => {
     country: "",
   });
 
-  // Load user data into form
   useEffect(() => {
     if (userData) {
       setFormData({
@@ -48,82 +54,60 @@ const PatientDetails = ({ userData }) => {
     }
   }, [userData]);
 
-  // Handle edit button click
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
-  // Handle cancel button click
   const handleCancelClick = () => {
     setIsEditing(false);
-    setFormData({
-      patientId: userData.patientId || "",
-      firstName: userData.firstName || "",
-      lastName: userData.lastName || "",
-      email: userData.email || "",
-      phoneNumber: userData.phoneNumber || "",
-      gender: userData.gender || "",
-      dateOfBirth: userData.dateOfBirth || "",
-      city: userData.city || "",
-      state: userData.state || "",
-      country: userData.country || "",
-    });
-    setErrors({}); // Clear errors on cancel
+    setErrors({});
+    setFormData(userData);
   };
 
-  // Handle form field change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
-    // Validate form data
     const validationErrors = validateForm(formData);
-    setErrors(validationErrors); // Set validation errors
+    setErrors(validationErrors);
 
-    // If validation errors exist, stop submission
     if (Object.keys(validationErrors).length > 0) {
-      console.warn("Validation failed:", validationErrors);
+      setToast({
+        open: true,
+        message: "Validation failed. Please correct errors.",
+        severity: "error",
+      });
       return;
     }
 
-    const previousData = { ...patientData }; // Backup the original data
-    setPatientData(formData); // Optimistically update UI
+    const previousData = { ...patientData };
+    setPatientData(formData);
 
     try {
-      setIsLoading(true); // Show loading indicator
-           
-      // Assume updatePatient is a service to update patient data on the server
+      setIsLoading(true);
       const updatedData = await updatePatient(formData.email, formData);
-       if(updatedData)
-      alert("Patient details updated successfully!");
-      setIsEditing(false); // Exit edit mode after successful update
+
+      if (updatedData) {
+        setToast({
+          open: true,
+          message: "Patient details updated successfully!",
+          severity: "success",
+        });
+        setIsEditing(false);
+      }
     } catch (error) {
-      setPatientData(previousData); // Rollback data on error
-      console.error("Error during patient update:", error.message);
-      alert(`Update failed: ${error.message}`);
+      setPatientData(previousData);
+      setToast({
+        open: true,
+        message: `Update failed: ${error.message}`,
+        severity: "error",
+      });
     } finally {
-      setIsLoading(false); // Stop loading indicator
+      setIsLoading(false);
     }
   };
-
-  // Update the fields array with disabled property
-  const fields = [
-    { label: "Patient ID", name: "patientId", disabled: true },
-    { label: "First Name", name: "firstName", disabled: false },
-    { label: "Last Name", name: "lastName", disabled: false },
-    { label: "Phone Number", name: "phoneNumber", disabled: false },
-    { label: "Email", name: "email", disabled: true },
-    { label: "Date of Birth", name: "dateOfBirth", disabled: false },
-    { label: "City", name: "city", disabled: false },
-    { label: "State", name: "state", disabled: false },
-    { label: "Country", name: "country", disabled: false },
-  ];
 
   return (
     <Box
@@ -136,7 +120,6 @@ const PatientDetails = ({ userData }) => {
         minHeight: "70vh",
       }}
     >
-      {/* Main Container */}
       <Box
         sx={{
           maxWidth: "800px",
@@ -147,8 +130,14 @@ const PatientDetails = ({ userData }) => {
           padding: 4,
         }}
       >
-        {/* Header Section */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 4,
+          }}
+        >
           <Typography variant="h5" fontWeight="bold">
             Patient Profile
           </Typography>
@@ -170,38 +159,30 @@ const PatientDetails = ({ userData }) => {
           </Card>
         </Box>
 
-        {/* Patient Details Section */}
         <Grid container spacing={2}>
-          {fields.map(({ label, name, disabled }) => (
-            <Grid item xs={6} key={name}>
-              <Typography fontWeight="bold">{label}:</Typography>
+          {Object.keys(formData).map((key) => (
+            <Grid item xs={6} key={key}>
+              <Typography fontWeight="bold">
+                {key.charAt(0).toUpperCase() + key.slice(1)}:
+              </Typography>
               {isEditing ? (
                 <TextField
                   fullWidth
-                  value={formData[name]}
-                  name={name}
+                  value={formData[key]}
+                  name={key}
                   onChange={handleChange}
                   size="small"
-                  error={Boolean(errors[name])}
-                  helperText={errors[name] || ""}
-                  disabled={disabled}
-                  InputProps={{
-                    sx: disabled ? {
-                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                      '&.Mui-disabled': {
-                        color: 'rgba(0, 0, 0, 0.7)',
-                      }
-                    } : {}
-                  }}
+                  error={Boolean(errors[key])}
+                  helperText={errors[key] || ""}
+                  disabled={["patientId", "email"].includes(key)}
                 />
               ) : (
-                <Typography>{formData[name]}</Typography>
+                <Typography>{formData[key]}</Typography>
               )}
             </Grid>
           ))}
         </Grid>
 
-        {/* Action Buttons */}
         <Box sx={{ textAlign: "right", marginTop: 3 }}>
           {!isEditing ? (
             <Button variant="contained" onClick={handleEditClick}>
@@ -209,16 +190,42 @@ const PatientDetails = ({ userData }) => {
             </Button>
           ) : (
             <>
-              <Button variant="contained" onClick={handleSubmit} disabled={isLoading}>
+              <Button
+                variant="contained"
+                onClick={handleSubmit}
+                disabled={isLoading}
+              >
                 {isLoading ? "Saving..." : "Save"}
               </Button>
-              <Button variant="outlined" onClick={handleCancelClick} sx={{ ml: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={handleCancelClick}
+                sx={{ ml: 2 }}
+              >
                 Cancel
               </Button>
             </>
           )}
         </Box>
       </Box>
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() =>
+          setToast({ open: false, message: "", severity: "success" })
+        }
+      >
+        <Alert
+          onClose={() =>
+            setToast({ open: false, message: "", severity: "success" })
+          }
+          severity={toast.severity}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

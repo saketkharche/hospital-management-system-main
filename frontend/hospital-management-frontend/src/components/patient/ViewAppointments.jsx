@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
+  Box,
+  Card,
+  CardContent,
   Typography,
+  CircularProgress,
+  Chip,
+  Fade,
+  Stack,
 } from "@mui/material";
+import { styled } from "@mui/system";
+
+// Stylish background container
+const StyledContainer = styled(Box)(({ theme }) => ({
+  background: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
+  padding: theme.spacing(4),
+  borderRadius: theme.spacing(2),
+  boxShadow: "0 8px 20px rgba(0, 0, 0, 0.08)",
+  maxWidth: "900px",
+  margin: "auto",
+}));
 
 const ViewAppointmentTable = () => {
   const [appointments, setAppointments] = useState([]);
@@ -28,11 +38,8 @@ const ViewAppointmentTable = () => {
           return;
         }
 
-        // Decode JWT to get the logged-in user's email (assuming it's stored in `sub` field)
         const payload = JSON.parse(atob(token.split(".")[1]));
-        const loggedInUser = payload.sub; // e.g. "saket2@gmail.com"
-
-        console.log("Logged-in User:", loggedInUser);
+        const loggedInUser = payload.sub;
 
         const response = await axios.get(
           "http://localhost:8080/hospital/api/appointments/my-appointments",
@@ -41,20 +48,15 @@ const ViewAppointmentTable = () => {
           }
         );
 
-        // Filter appointments by patientEmail instead of patientName
         const userAppointments = response.data.filter(
           (appt) =>
             appt.patientEmail?.toLowerCase() === loggedInUser.toLowerCase()
         );
-        console.log("Filtered Appointments:", userAppointments);
 
         setAppointments(userAppointments);
         setLoading(false);
       } catch (err) {
-        console.error(
-          "Error fetching appointments:",
-          err.response?.data || err.message
-        );
+        console.error("Error fetching appointments:", err.message);
         setError("Could not load appointments.");
         setLoading(false);
       }
@@ -63,49 +65,84 @@ const ViewAppointmentTable = () => {
     fetchAppointments();
   }, []);
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "warning";
+      case "approved":
+        return "success";
+      case "cancelled":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
   return (
-    <TableContainer component={Paper} sx={{ p: 2 }}>
+    <StyledContainer>
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        gutterBottom
+        textAlign="center"
+        sx={{
+          fontFamily: "Poppins, sans-serif",
+          color: "#2C3E50",
+        }}
+      >
+        My Appointments
+      </Typography>
+
       {loading ? (
-        <CircularProgress sx={{ display: "block", margin: "auto", mt: 4 }} />
+        <Box textAlign="center" mt={5}>
+          <CircularProgress color="primary" />
+        </Box>
       ) : error ? (
-        <Typography color="error" textAlign="center">
+        <Typography color="error" textAlign="center" mt={4}>
           {error}
         </Typography>
       ) : appointments.length === 0 ? (
-        <Typography color="text.secondary" textAlign="center">
+        <Typography color="text.secondary" textAlign="center" mt={4}>
           No appointments found.
         </Typography>
       ) : (
-        <Table>
-          <TableHead sx={{ bgcolor: "#f5f5f5" }}>
-            <TableRow>
-              <TableCell>
-                <strong>Doctor</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Date</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Time</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Status</strong>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+        <Fade in timeout={600}>
+          <Stack spacing={3}>
             {appointments.map((appt, index) => (
-              <TableRow key={index}>
-                <TableCell>{appt.doctorName}</TableCell>
-                <TableCell>{appt.date}</TableCell>
-                <TableCell>{appt.time}</TableCell>
-                <TableCell>{appt.status}</TableCell>
-              </TableRow>
+              <Card
+                key={index}
+                elevation={3}
+                sx={{
+                  transition: "transform 0.3s ease",
+                  borderRadius: 3,
+                  "&:hover": {
+                    transform: "scale(1.02)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    Dr. {appt.doctorName}
+                  </Typography>
+                  <Typography>
+                    <strong>Date:</strong> {appt.date}
+                  </Typography>
+                  <Typography>
+                    <strong>Time:</strong> {appt.time}
+                  </Typography>
+                  <Chip
+                    label={appt.status}
+                    color={getStatusColor(appt.status)}
+                    sx={{ mt: 2 }}
+                  />
+                </CardContent>
+              </Card>
             ))}
-          </TableBody>
-        </Table>
+          </Stack>
+        </Fade>
       )}
-    </TableContainer>
+    </StyledContainer>
   );
 };
 

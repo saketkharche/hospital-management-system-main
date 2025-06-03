@@ -1,25 +1,25 @@
-import React from 'react';
-import { Container, Grid, Paper, Typography } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import PaymentsIcon from '@mui/icons-material/Payment';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Container, Grid, Paper, Typography } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
+import PaymentsIcon from "@mui/icons-material/Payment";
+import { motion } from "framer-motion";
 
 const features = [
   {
     icon: <PersonIcon fontSize="large" color="primary" />,
-    title: 'Patient Management',
-    description: 'Easily manage patient records and appointments.',
+    title: "Patient Management",
+    description: "Easily manage patient records and appointments.",
   },
   {
     icon: <MedicalServicesIcon fontSize="large" color="primary" />,
-    title: 'Doctor Management',
-    description: 'Assign doctors to patients and manage their schedules.',
+    title: "Doctor Management",
+    description: "Assign doctors to patients and manage their schedules.",
   },
   {
     icon: <PaymentsIcon fontSize="large" color="primary" />,
-    title: 'Billing and Payments',
-    description: 'Track bills, payments, and financial reports seamlessly.',
+    title: "Billing and Payments",
+    description: "Track bills, payments, and financial reports seamlessly.",
   },
 ];
 
@@ -37,7 +37,7 @@ function FeaturesSection() {
               whileTap={{ scale: 0.9 }}
               transition={{ duration: 0.3 }}
             >
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Paper sx={{ p: 4, textAlign: "center" }}>
                 {feature.icon}
                 <Typography variant="h6" sx={{ mt: 2 }}>
                   {feature.title}

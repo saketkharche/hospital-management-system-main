@@ -12,6 +12,11 @@ import StaffProfile from "./pages/StaffProfile";
 import AboutUs from "./components/home/AboutUs.jsx";
 import ForgotPassword from "./pages/ForgotPassword";
 
+// Updated imports from components/doctor
+import AppointmentList from "./components/doctor/AppointmentList";
+import AppointmentDetails from "./components/doctor/AppointmentDetails";
+import PrescriptionForm from "./components/doctor/PrescriptionForm";
+
 function App() {
   return (
     <Router basename="/LifeBridgeHospital">
@@ -28,6 +33,18 @@ function App() {
         <Route path="/nurse/profile" element={<NurseProfile />} />
         <Route path="/staff/profile" element={<StaffProfile />} />
         <Route path="/about" element={<AboutUs />} />
+        {/* Doctor Section */}
+        <Route path="/doctor/appointments" element={<AppointmentList />} />
+        <Route
+          path="/doctor/appointments/:id"
+          element={<AppointmentDetails />}
+        />
+        <Route
+          path="/doctor/appointments/:id/prescription"
+          element={<PrescriptionForm />}
+        />
+
+        {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
