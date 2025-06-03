@@ -26,61 +26,60 @@ import com.hospital.service.PatientService;
 @RestController
 public class AuthController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+	@Autowired
+	private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+	@Autowired
+	private JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    private PatientService patientService;
+	@Autowired
+	private PatientService patientService;
 
-    @PostMapping("/api/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        String email = loginRequest.getEmail();
-        String password = loginRequest.getPassword();
-        
-        System.err.println("Attempting to authenticate user with email: {}"+ email);
-        System.err.println("Received password (masked):{}"+ password);
+	@PostMapping("/api/login")
+	public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+		String email = loginRequest.getEmail();
+		String password = loginRequest.getPassword();
 
-        // Logging input credentials
-        logger.info("Attempting to authenticate user with email: {}", email);
-        logger.info("Received password (masked): {}", password != null ? "[PROVIDED]" : "[NOT PROVIDED]");
+		System.err.println("Attempting to authenticate user with email: {}" + email);
+		System.err.println("Received password (masked):{}" + password);
 
-        // Validate input
-        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            logger.error("Email or password is empty");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email and password must not be empty.");
-        }
+		// Logging input credentials
+		logger.info("Attempting to authenticate user with email: {}", email);
+		logger.info("Received password (masked): {}", password != null ? "[PROVIDED]" : "[NOT PROVIDED]");
 
-        try {
-            // Attempt authentication
-            logger.info("Authenticating user with Spring Security...");
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
-            );
+		// Validate input
+		if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
+			logger.error("Email or password is empty");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email and password must not be empty.");
+		}
 
-            // If authentication is successful, set the context
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            logger.info("Authentication successful for user: {}", email);
+		try {
+			// Attempt authentication
+			logger.info("Authenticating user with Spring Security...");
+			Authentication authentication = authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(email, password));
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            String role = authorities.isEmpty() ? "" : authorities.iterator().next().getAuthority();
+			// If authentication is successful, set the context
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+			logger.info("Authentication successful for user: {}", email);
 
-            // Generate JWT token
-            String token = jwtTokenUtil.generateToken(userDetails,role);
-            logger.info("JWT Token generated successfully for user: {}", userDetails.getUsername());
+			UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+			Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+			String role = authorities.isEmpty() ? "" : authorities.iterator().next().getAuthority();
 
-            // Prepare the response
-            Map<String, Object> response = new HashMap<>();
-            response.put("email", userDetails.getUsername());
-            response.put("role", role);
-            response.put("token", token);
+			// Generate JWT token
+			String token = jwtTokenUtil.generateToken(userDetails, role);
+			logger.info("JWT Token generated successfully for user: {}", userDetails.getUsername());
 
-            // Check user role and fetch additional details if patient
+			// Prepare the response
+			Map<String, Object> response = new HashMap<>();
+			response.put("email", userDetails.getUsername());
+			response.put("role", role);
+			response.put("token", token);
+
+			// Check user role and fetch additional details if patient
 //            if ("ROLE_PATIENT".equals(role)) {
 //                logger.info("Fetching patient details for email: {}", userDetails.getUsername());
 //                PatientResponse patientResponse = patientService.getPatientByEmail(userDetails.getUsername());
@@ -89,12 +88,12 @@ public class AuthController {
 //                response.put("message", "Welcome Admin");
 //            }
 
-            logger.info("Response: {}", response);
-            return ResponseEntity.ok(response);
+			logger.info("Response: {}", response);
+			return ResponseEntity.ok(response);
 
-        } catch (Exception e) {
-            logger.error("Authentication failed for user: {}. Error: {}", email, e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password.");
-        }
-    }
+		} catch (Exception e) {
+			logger.error("Authentication failed for user: {}. Error: {}", email, e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password.");
+		}
+	}
 }

@@ -10,6 +10,7 @@ import PatientProfile from "./pages/PatientProfile";
 import NurseProfile from "./pages/NurseProfile";
 import StaffProfile from "./pages/StaffProfile";
 import AboutUs from "./components/home/AboutUs.jsx";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPatient />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
         <Route path="/doctor/profile" element={<DoctorProfile />} />
         <Route path="/patient/profile" element={<PatientProfile />} />

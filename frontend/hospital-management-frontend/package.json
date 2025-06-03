@@ -19,7 +19,7 @@
     "chart.js": "^4.4.6",
     "date-fns": "^2.29.3",
     "formik": "^2.4.6",
-    "framer-motion": "^11.11.17",
+    "framer-motion": "^11.18.2",
     "hospital-management-frontend": "file:",
     "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
