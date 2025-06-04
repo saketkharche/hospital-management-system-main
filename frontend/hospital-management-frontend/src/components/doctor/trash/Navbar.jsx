@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -10,46 +10,17 @@ import {
   Box,
 } from "@mui/material";
 import { AccountCircle, Logout } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-
-const getUserFromToken = () => {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.sub || "Patient";
-  } catch (err) {
-    console.error("Invalid token", err);
-    return "Patient";
-  }
-};
 
 const Navbar = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [username, setUsername] = useState("Patient");
+  const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const name = getUserFromToken();
-    if (name) setUsername(name);
-  }, []);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => setAnchorEl(null);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    handleClose();
-    navigate("/login"); // Redirect to login
-  };
-
-  const handleProfile = () => {
-    handleClose();
-    navigate("/profile"); // Or wherever your patient profile page is
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
   return (
@@ -60,11 +31,11 @@ const Navbar = () => {
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Typography variant="subtitle1" sx={{ mr: 2 }}>
-            {username}
+            John Doe
           </Typography>
           <Avatar
-            alt={username}
-            src="/path/to/profile.jpg" // Optional: Make dynamic if available
+            alt="Patient"
+            src="/path/to/profile.jpg"
             onClick={handleMenu}
             sx={{ cursor: "pointer" }}
           />
@@ -74,10 +45,10 @@ const Navbar = () => {
             onClose={handleClose}
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           >
-            <MenuItem onClick={handleProfile}>
+            <MenuItem onClick={handleClose}>
               <AccountCircle sx={{ mr: 1 }} /> Profile
             </MenuItem>
-            <MenuItem onClick={handleLogout}>
+            <MenuItem onClick={handleClose}>
               <Logout sx={{ mr: 1 }} /> Logout
             </MenuItem>
           </Menu>

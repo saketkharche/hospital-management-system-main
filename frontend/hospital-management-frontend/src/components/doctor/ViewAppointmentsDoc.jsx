@@ -117,11 +117,22 @@ const ViewDoctorAppointments = () => {
                     Patient: {appt.patientName}
                   </Typography>
                   <Divider sx={{ my: 1 }} />
-                  <Typography><strong>Doctor:</strong> {appt.doctorName}</Typography>
-                  <Typography><strong>Date:</strong> {appt.date}</Typography>
-                  <Typography><strong>Time:</strong> {appt.time}</Typography>
-                  <Typography><strong>Email:</strong> {appt.patientEmail || "Not Provided"}</Typography>
-                  <Typography><strong>Status:</strong> {appt.status}</Typography>
+                  <Typography>
+                    <strong>Doctor:</strong> {appt.doctorName}
+                  </Typography>
+                  <Typography>
+                    <strong>Date:</strong> {appt.date}
+                  </Typography>
+                  <Typography>
+                    <strong>Time:</strong> {appt.time}
+                  </Typography>
+                  <Typography>
+                    <strong>Email:</strong>{" "}
+                    {appt.patientEmail || "Not Provided"}
+                  </Typography>
+                  <Typography>
+                    <strong>Status:</strong> {appt.status}
+                  </Typography>
                   <Chip
                     label={appt.status}
                     color={getStatusColor(appt.status)}

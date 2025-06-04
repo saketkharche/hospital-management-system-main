@@ -21,6 +21,7 @@
     "formik": "^2.4.6",
     "framer-motion": "^11.18.2",
     "hospital-management-frontend": "file:",
+    "ipaddr.js": "^2.2.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.511.0",
     "react": "^18.3.1",
