@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.hospital.dto.response.AppointmentWithDoctorDTO;
 import com.hospital.entity.Appointment;
 import com.hospital.enums.Status;
 import com.hospital.exception.ResourceNotFoundException;
@@ -18,11 +17,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 	@Autowired
 	private AppointmentRepository appointmentRepository;
-
-	@Override
-	public List<AppointmentWithDoctorDTO> getAppointmentsWithDoctorDetailsByEmail(String email) {
-		return appointmentRepository.findWithDoctorDetailsByPatientEmail(email);
-	}
 
 	/**
 	 * 🏥 **Patient Side:** Create a new appointment.

@@ -39,18 +39,17 @@ public class SecurityConfig {
 	@Autowired
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-	// ✅ Security filter chain configuration
+	// ✅ Security filter chain
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS applied before authentication
-				.csrf(csrf -> csrf.disable()) // 🔓 Disable CSRF (for APIs)
-				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ Allow
+		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 🔓 Allow
 																											// preflight
 																											// requests
 						.requestMatchers("/", "/hospital/**", "/home", "/api/login", "/api/patients/register",
 								"/api/appointments", "/api/feedback", "/api/doctors/fetchAllDoctorNames")
 						.permitAll().requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-						.requestMatchers("/api/doctors/**").hasAnyAuthority("ROLE_DOCTOR", "ROLE_ADMIN")
+						.requestMatchers("/api/doctor/**").hasAnyAuthority("ROLE_DOCTOR", "ROLE_ADMIN")
 						.requestMatchers("/api/nurse/**").hasAuthority("ROLE_NURSE").requestMatchers("/api/staff/**")
 						.hasAuthority("ROLE_STAFF").requestMatchers("/api/patients/**")
 						.hasAnyAuthority("ROLE_PATIENT", "ROLE_ADMIN").anyRequest().authenticated())
@@ -68,18 +67,18 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(List.of("http://localhost:3000")); // ✅ Allow frontend origin
+		config.setAllowedOrigins(List.of("http://localhost:3000")); // Frontend origin
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		config.setAllowedHeaders(List.of("*")); // ✅ Allow all headers
+		config.setAllowedHeaders(List.of("*")); // Allow all headers
 		config.setExposedHeaders(List.of("Authorization", "Content-Type"));
-		config.setAllowCredentials(true); // ✅ Allow cookies/JWTs for authentication
+		config.setAllowCredentials(true); // Allow cookies/JWTs
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);
 		return source;
 	}
 
-	// ✅ Global CorsFilter ensures CORS runs before Spring Security
+	// ✅ Global CorsFilter to ensure CORS runs before Spring Security
 	@Bean
 	@Order(Ordered.HIGHEST_PRECEDENCE)
 	public CorsFilter customCorsFilter() {
@@ -95,13 +94,13 @@ public class SecurityConfig {
 		return provider;
 	}
 
-	// ✅ Password encoder for secure password storage
+	// ✅ Password encoder
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
-	// ✅ Authentication manager for user authentication
+	// ✅ Authentication manager
 	@Bean
 	public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
 		return http.getSharedObject(AuthenticationManagerBuilder.class).userDetailsService(userDetailsService)
