@@ -1,6 +1,8 @@
 package com.hospital.controller;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hospital.dto.request.AppointmentRequest;
 import com.hospital.entity.Appointment;
+import com.hospital.entity.Doctor;
 import com.hospital.enums.Status;
+import com.hospital.repository.DoctorRepository;
 import com.hospital.service.AppointmentService;
 
 @RestController
@@ -29,6 +33,8 @@ public class AppointmentController {
 
 	@Autowired
 	private AppointmentService appointmentService;
+	@Autowired
+	private DoctorRepository doctorRepository;
 
 	/**
 	 * 🏥 **Patient Side:** Fetch appointments for the logged-in patient.
@@ -45,8 +51,17 @@ public class AppointmentController {
 	 */
 	@GetMapping("/doctor-appointments")
 	public ResponseEntity<List<Appointment>> getDoctorAppointments(@AuthenticationPrincipal UserDetails userDetails) {
-		String doctorName = userDetails.getUsername();
+		String doctorEmail = userDetails.getUsername(); // Extract doctor email from JWT
+		Optional<Doctor> doctor = doctorRepository.findByEmail(doctorEmail); // Fetch doctor from DB
+
+		if (doctor.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
+		}
+
+		String doctorName = doctor.get().getFirstName() + " " + doctor.get().getLastName() + "-"
+				+ doctor.get().getSpecialization(); // Get stored doctor name
 		List<Appointment> appointments = appointmentService.getAppointmentsByDoctorName(doctorName);
+
 		return ResponseEntity.ok(appointments);
 	}
 
