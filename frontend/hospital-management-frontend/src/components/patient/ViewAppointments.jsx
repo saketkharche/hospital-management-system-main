@@ -123,7 +123,7 @@ const ViewAppointmentTable = () => {
               >
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom>
-                    Dr. {appt.doctorName}
+                     {appt.doctorName}
                   </Typography>
                   <Typography>
                     <strong>Date:</strong> {appt.date}
