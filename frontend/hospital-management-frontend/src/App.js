@@ -43,8 +43,15 @@ function App() {
 
         {/* Doctor Functional Pages */}
         <Route path="/doctor/appointments" element={<ViewAppointmentsDoc />} />
-        <Route path="/doctor/appointments/:id" element={<AppointmentDetails />} />
-        <Route path="/doctor/appointments/:id/prescription" element={<PrescriptionForm />} />
+        <Route
+          path="/doctor/appointments/:id"
+          element={<AppointmentDetails />}
+        />
+        <Route path="/doctor/prescriptions/new" element={<PrescriptionForm />} />
+        <Route
+          path="/doctor/appointments/:id/prescription"
+          element={<PrescriptionForm />}
+        />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
