@@ -63,14 +63,12 @@ const PrescriptionForm = () => {
         setLoading(false);
       }
     };
-
     fetchAppointments();
   }, []);
 
   // Load patient data when appointment is selected
   useEffect(() => {
     if (!selectedAppointmentId || !appointments.length) return;
-
     const selected = appointments.find(apt => apt.id === parseInt(selectedAppointmentId));
     if (selected) {
       setPatientData({
@@ -118,20 +116,17 @@ const PrescriptionForm = () => {
       return false;
     }
 
-    // Validate each medicine field
     for (const med of medicines) {
-      if (med.name.trim() === '') continue; // Skip empty medicine entries
-      
+      if (med.name.trim() === '') continue;
+
       if (med.dosage.trim() === '') {
         setError("Please enter dosage for all medicines.");
         return false;
       }
-      
       if (med.frequency.trim() === '') {
         setError("Please enter frequency for all medicines.");
         return false;
       }
-      
       if (med.duration.trim() === '') {
         setError("Please enter duration for all medicines.");
         return false;
@@ -144,18 +139,17 @@ const PrescriptionForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
     if (!validateForm()) return;
 
     setSubmitting(true);
 
-    try {
-      const prescriptionData = {
-        appointmentId: parseInt(selectedAppointmentId),
-        medicines: medicines.filter(med => med.name.trim() !== ''),
-        additionalInstructions: additionalInstructions
-      };
+    const prescriptionData = {
+      appointmentId: parseInt(selectedAppointmentId),
+      medicines: medicines.filter(med => med.name.trim() !== ''),
+      additionalInstructions: additionalInstructions
+    };
 
+    try {
       const response = await axios.post(
         'http://localhost:8080/hospital/api/prescriptions/issue',
         prescriptionData,
@@ -171,9 +165,9 @@ const PrescriptionForm = () => {
       setTimeout(() => navigate('/doctor/appointments'), 2000);
     } catch (err) {
       console.error('Failed to submit prescription:', err);
-      const errorMessage = err.response?.data?.message || 
-                         err.response?.data?.error || 
-                         'Failed to submit prescription. Please try again.';
+      const errorMessage = err.response?.data?.message ||
+                           err.response?.data?.error ||
+                           'Failed to submit prescription. Please try again.';
       setError(errorMessage);
     } finally {
       setSubmitting(false);
@@ -261,7 +255,6 @@ const PrescriptionForm = () => {
               <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
                 Prescription Details
               </Typography>
-
               <form onSubmit={handleSubmit}>
                 {medicines.map((medicine, index) => (
                   <Box key={index} sx={{ mb: 4 }}>
@@ -295,7 +288,7 @@ const PrescriptionForm = () => {
                           value={medicine.frequency}
                           onChange={(e) => handleMedicineChange(index, 'frequency', e.target.value)}
                           disabled={submitting}
-                          placeholder="e.g., 2 times/day"
+                          placeholder="e.g., Twice daily"
                         />
                       </Grid>
                       <Grid item xs={12} sm={2}>
