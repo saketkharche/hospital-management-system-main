@@ -12,7 +12,11 @@ import {
   Box,
   IconButton,
   Chip,
-  Divider
+  Divider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -20,56 +24,64 @@ import { Add, Remove, ArrowBack } from '@mui/icons-material';
 import DoctorLayout from './DoctorLayout';
 
 const PrescriptionForm = () => {
-  const { id: appointmentId } = useParams();
   const navigate = useNavigate();
-  const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [medicines, setMedicines] = useState([{
-    name: '',
-    dosage: '',
-    frequency: '',
-    duration: '',
-    instructions: ''
-  }]);
+  const [appointments, setAppointments] = useState([]);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState('');
+  const [patientData, setPatientData] = useState(null);
+  const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [medicines, setMedicines] = useState([
+    {
+      name: '',
+      dosage: '',
+      frequency: '',
+      duration: '',
+      instructions: ''
+    }
+  ]);
 
+  // Fetch doctor's appointments
   useEffect(() => {
-    const fetchAppointmentDetails = async () => {
+    const fetchAppointments = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8080/hospital/api/appointments/${appointmentId}`,
+          'http://localhost:8080/hospital/api/appointments/doctor-appointments',
           {
             headers: {
               Authorization: `Bearer ${sessionStorage.getItem('token')}`,
             },
           }
         );
-        
-        if (!res.data) {
-          throw new Error('No data received from server');
-        }
-        
-        setPatientData({
-          id: res.data.patientId,
-          name: res.data.patientName || 'Patient',
-          email: res.data.patientEmail,
-          age: res.data.patientAge || '',
-          gender: res.data.patientGender || '',
-          bloodGroup: res.data.patientBloodGroup || ''
-        });
+        setAppointments(res.data || []);
       } catch (err) {
-        console.error('Failed to fetch appointment details:', err);
-        setError(err.response?.data?.message || 
-                err.message || 
-                'Failed to load appointment details. Please try again later.');
+        console.error('Failed to fetch appointments:', err);
+        setError('Failed to load appointments. Please log in again.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAppointmentDetails();
-  }, [appointmentId]);
+    fetchAppointments();
+  }, []);
+
+  // Load patient data when appointment is selected
+  useEffect(() => {
+    if (!selectedAppointmentId || !appointments.length) return;
+
+    const selected = appointments.find(apt => apt.id === parseInt(selectedAppointmentId));
+    if (selected) {
+      setPatientData({
+        name: selected.patientName,
+        date: selected.date,
+        time: selected.time,
+        email: selected.patientEmail,
+        patientId: selected.patientId
+      });
+    }
+  }, [selectedAppointmentId, appointments]);
 
   const handleMedicineChange = (index, field, value) => {
     const updatedMedicines = [...medicines];
@@ -95,18 +107,56 @@ const PrescriptionForm = () => {
     }
   };
 
+  const validateForm = () => {
+    if (!selectedAppointmentId) {
+      setError("Please select an appointment.");
+      return false;
+    }
+
+    if (!medicines.some(med => med.name.trim() !== '')) {
+      setError("At least one medicine is required.");
+      return false;
+    }
+
+    // Validate each medicine field
+    for (const med of medicines) {
+      if (med.name.trim() === '') continue; // Skip empty medicine entries
+      
+      if (med.dosage.trim() === '') {
+        setError("Please enter dosage for all medicines.");
+        return false;
+      }
+      
+      if (med.frequency.trim() === '') {
+        setError("Please enter frequency for all medicines.");
+        return false;
+      }
+      
+      if (med.duration.trim() === '') {
+        setError("Please enter duration for all medicines.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!validateForm()) return;
+
+    setSubmitting(true);
+
     try {
       const prescriptionData = {
-        appointmentId: parseInt(appointmentId),
-        patientId: patientData.id,
-        patientEmail: patientData.email,
+        appointmentId: parseInt(selectedAppointmentId),
         medicines: medicines.filter(med => med.name.trim() !== ''),
-        additionalInstructions: ''
+        additionalInstructions: additionalInstructions
       };
 
-      await axios.post(
+      const response = await axios.post(
         'http://localhost:8080/hospital/api/prescriptions/issue',
         prescriptionData,
         {
@@ -121,7 +171,12 @@ const PrescriptionForm = () => {
       setTimeout(() => navigate('/doctor/appointments'), 2000);
     } catch (err) {
       console.error('Failed to submit prescription:', err);
-      setError(err.response?.data?.message || 'Failed to submit prescription. Please try again.');
+      const errorMessage = err.response?.data?.message || 
+                         err.response?.data?.error || 
+                         'Failed to submit prescription. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -130,37 +185,6 @@ const PrescriptionForm = () => {
       <DoctorLayout>
         <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
           <CircularProgress />
-        </Container>
-      </DoctorLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DoctorLayout>
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-          <Button 
-            variant="contained" 
-            onClick={() => window.location.reload()}
-            sx={{ mt: 2 }}
-          >
-            Retry
-          </Button>
-        </Container>
-      </DoctorLayout>
-    );
-  }
-
-  if (!patientData) {
-    return (
-      <DoctorLayout>
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-          <Alert severity="warning">
-            No patient data available for this appointment
-          </Alert>
         </Container>
       </DoctorLayout>
     );
@@ -178,123 +202,181 @@ const PrescriptionForm = () => {
           </Typography>
         </Box>
 
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
         <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
           <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
-            Patient Information
+            Select Appointment
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <Chip label={`Name: ${patientData.name}`} variant="outlined" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Chip label={`Age: ${patientData.age || 'N/A'}`} variant="outlined" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Chip label={`Gender: ${patientData.gender || 'N/A'}`} variant="outlined" />
-            </Grid>
-            <Grid item xs={12}>
-              <Chip 
-                label={`Blood Group: ${patientData.bloodGroup || 'N/A'}`} 
-                variant="outlined" 
-                color="primary"
-              />
-            </Grid>
-          </Grid>
-        </Paper>
-
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
-            Prescription Details
-          </Typography>
-
-          <form onSubmit={handleSubmit}>
-            {medicines.map((medicine, index) => (
-              <Box key={index} sx={{ mb: 4 }}>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} sm={5}>
-                    <TextField
-                      required
-                      label="Medicine Name"
-                      fullWidth
-                      value={medicine.name}
-                      onChange={(e) => handleMedicineChange(index, 'name', e.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <TextField
-                      required
-                      label="Dosage"
-                      fullWidth
-                      value={medicine.dosage}
-                      onChange={(e) => handleMedicineChange(index, 'dosage', e.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <TextField
-                      required
-                      label="Frequency"
-                      fullWidth
-                      value={medicine.frequency}
-                      onChange={(e) => handleMedicineChange(index, 'frequency', e.target.value)}
-                      placeholder="e.g., 2 times/day"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <TextField
-                      required
-                      label="Duration"
-                      fullWidth
-                      value={medicine.duration}
-                      onChange={(e) => handleMedicineChange(index, 'duration', e.target.value)}
-                      placeholder="e.g., 7 days"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={1}>
-                    <IconButton 
-                      onClick={() => removeMedicine(index)} 
-                      color="error"
-                      disabled={medicines.length <= 1}
-                    >
-                      <Remove />
-                    </IconButton>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Special Instructions"
-                      fullWidth
-                      multiline
-                      rows={2}
-                      value={medicine.instructions}
-                      onChange={(e) => handleMedicineChange(index, 'instructions', e.target.value)}
-                    />
-                  </Grid>
-                </Grid>
-                {index < medicines.length - 1 && <Divider sx={{ my: 2 }} />}
-              </Box>
-            ))}
-
-            <Button
-              startIcon={<Add />}
-              onClick={addMedicine}
-              variant="outlined"
-              sx={{ mb: 3 }}
+          <FormControl fullWidth required>
+            <InputLabel id="appointment-select-label">Select Appointment</InputLabel>
+            <Select
+              labelId="appointment-select-label"
+              value={selectedAppointmentId}
+              label="Select Appointment"
+              onChange={(e) => setSelectedAppointmentId(e.target.value)}
+              disabled={submitting}
             >
-              Add Another Medicine
-            </Button>
-
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                sx={{ px: 4 }}
-                disabled={!medicines.some(med => med.name.trim() !== '')}
-              >
-                Submit Prescription
-              </Button>
-            </Box>
-          </form>
+              {appointments.map((apt) => (
+                <MenuItem key={apt.id} value={apt.id}>
+                  {`ID: ${apt.id} | Patient: ${apt.patientName} | Date: ${apt.date}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Paper>
+
+        {patientData && (
+          <>
+            <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
+              <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+                Appointment Summary
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Chip label={`Name: ${patientData.name}`} variant="outlined" fullWidth />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Chip label={`Date: ${patientData.date}`} variant="outlined" fullWidth />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Chip label={`Time: ${patientData.time}`} variant="outlined" fullWidth />
+                </Grid>
+                <Grid item xs={12}>
+                  <Chip 
+                    label={`Email: ${patientData.email}`} 
+                    variant="outlined" 
+                    color="primary"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+
+            <Paper elevation={3} sx={{ p: 4 }}>
+              <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+                Prescription Details
+              </Typography>
+
+              <form onSubmit={handleSubmit}>
+                {medicines.map((medicine, index) => (
+                  <Box key={index} sx={{ mb: 4 }}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={5}>
+                        <TextField
+                          required
+                          label="Medicine Name"
+                          fullWidth
+                          value={medicine.name}
+                          onChange={(e) => handleMedicineChange(index, 'name', e.target.value)}
+                          disabled={submitting}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <TextField
+                          required
+                          label="Dosage"
+                          fullWidth
+                          value={medicine.dosage}
+                          onChange={(e) => handleMedicineChange(index, 'dosage', e.target.value)}
+                          disabled={submitting}
+                          placeholder="e.g., 500mg"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <TextField
+                          required
+                          label="Frequency"
+                          fullWidth
+                          value={medicine.frequency}
+                          onChange={(e) => handleMedicineChange(index, 'frequency', e.target.value)}
+                          disabled={submitting}
+                          placeholder="e.g., 2 times/day"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <TextField
+                          required
+                          label="Duration"
+                          fullWidth
+                          value={medicine.duration}
+                          onChange={(e) => handleMedicineChange(index, 'duration', e.target.value)}
+                          disabled={submitting}
+                          placeholder="e.g., 7 days"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={1}>
+                        <IconButton 
+                          onClick={() => removeMedicine(index)} 
+                          color="error"
+                          disabled={medicines.length <= 1 || submitting}
+                        >
+                          <Remove />
+                        </IconButton>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Special Instructions"
+                          fullWidth
+                          multiline
+                          rows={2}
+                          value={medicine.instructions}
+                          onChange={(e) => handleMedicineChange(index, 'instructions', e.target.value)}
+                          disabled={submitting}
+                        />
+                      </Grid>
+                    </Grid>
+                    {index < medicines.length - 1 && <Divider sx={{ my: 2 }} />}
+                  </Box>
+                ))}
+
+                <Button
+                  startIcon={<Add />}
+                  onClick={addMedicine}
+                  variant="outlined"
+                  sx={{ mb: 3 }}
+                  disabled={submitting}
+                >
+                  Add Another Medicine
+                </Button>
+
+                <TextField
+                  label="Additional Instructions"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={additionalInstructions}
+                  onChange={(e) => setAdditionalInstructions(e.target.value)}
+                  sx={{ mb: 3 }}
+                  disabled={submitting}
+                />
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    sx={{ px: 4 }}
+                    disabled={submitting || !medicines.some(med => med.name.trim() !== '')}
+                  >
+                    {submitting ? (
+                      <>
+                        <CircularProgress size={24} sx={{ mr: 1 }} />
+                        Submitting...
+                      </>
+                    ) : (
+                      'Submit Prescription'
+                    )}
+                  </Button>
+                </Box>
+              </form>
+            </Paper>
+          </>
+        )}
 
         <Snackbar
           open={success}
@@ -304,17 +386,6 @@ const PrescriptionForm = () => {
         >
           <Alert severity="success" onClose={() => setSuccess(false)}>
             Prescription submitted successfully!
-          </Alert>
-        </Snackbar>
-
-        <Snackbar
-          open={!!error}
-          autoHideDuration={3000}
-          onClose={() => setError('')}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert severity="error" onClose={() => setError('')}>
-            {error}
           </Alert>
         </Snackbar>
       </Container>

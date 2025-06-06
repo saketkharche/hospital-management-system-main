@@ -145,7 +145,7 @@ function DoctorProfile() {
               {darkMode ? <LightMode /> : <DarkMode />}
             </IconButton>
             <img
-              src="https://cdn-icons-png.flaticon.com/512/1533/1533506.png"
+              src="https://cdn-icons-png.freepik.com/256/2894/2894807.png?ga=GA1.1.1973256367.1748951813"
               alt="Doctor"
               style={{
                 borderRadius: "50%",
