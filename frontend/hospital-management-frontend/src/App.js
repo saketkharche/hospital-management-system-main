@@ -22,6 +22,10 @@ import NotFound from "./components/common/NotFound";
 import ViewAppointmentsDoc from "./components/doctor/ViewDoctorAppointments";
 import AppointmentDetails from "./components/doctor/AppointmentDetails";
 import PrescriptionForm from "./components/doctor/PrescriptionForm";
+import DoctorFeedbackList from "./components/doctor/DoctorFeedback";
+
+// ✅ Add this line:
+import DoctorLayout from "./components/doctor/DoctorLayout"; // or correct path
 
 function App() {
   return (
@@ -42,15 +46,42 @@ function App() {
         <Route path="/staff/profile" element={<StaffProfile />} />
 
         {/* Doctor Functional Pages */}
-        <Route path="/doctor/appointments" element={<ViewAppointmentsDoc />} />
+        {/* Doctor Functional Pages */}
+        <Route
+          path="/doctor/appointments"
+          element={
+              <ViewAppointmentsDoc />
+
+          }
+        />
         <Route
           path="/doctor/appointments/:id"
-          element={<AppointmentDetails />}
+          element={
+              <AppointmentDetails />
+
+          }
         />
-        <Route path="/doctor/prescriptions/new" element={<PrescriptionForm />} />
+        <Route
+          path="/doctor/prescriptions/new"
+          element={
+              <PrescriptionForm />
+
+          }
+        />
         <Route
           path="/doctor/appointments/:id/prescription"
-          element={<PrescriptionForm />}
+          element={
+              <PrescriptionForm />
+
+          }
+        />
+        <Route
+          path="/doctor/feedback"
+          element={
+            <DoctorLayout>
+              <DoctorFeedbackList />
+            </DoctorLayout>
+          }
         />
 
         {/* Catch-all */}

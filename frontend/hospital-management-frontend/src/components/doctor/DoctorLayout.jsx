@@ -39,7 +39,6 @@ const sidebarItems = [
   { key: "profile", label: "Doctor Profile", icon: <Home />, path: "/doctor/profile" },
   { key: "view-appointments", label: "View Appointments", icon: <CalendarToday />, path: "/doctor/appointments" },
   { key: "issue-prescription", label: "Issue Prescription", icon: <LocalPharmacy />, path: "/doctor/appointments/:id/prescription" },
-  { key: "prescription-history", label: "Prescription History", icon: <LocalPharmacy />, path: "/doctor/prescriptions" },
   { key: "feedback", label: "Feedback", icon: <FeedbackIcon />, path: "/doctor/feedback" },
 ];
 
@@ -107,7 +106,7 @@ const DoctorLayout = ({ children }) => {
               {isMobile ? <Menu /> : collapsed ? <ChevronRight /> : <ChevronLeft />}
             </IconButton>
             <Typography variant="h6" sx={{ fontWeight: "bold", whiteSpace: "nowrap" }}>
-              🏥 LifeBridge Hospital
+              LifeBridge Hospital-Doctor Portal
             </Typography>
           </Box>
 
