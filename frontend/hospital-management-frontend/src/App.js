@@ -6,6 +6,8 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPatient from "./pages/RegisterPatient";
 import ForgotPassword from "./pages/ForgotPassword";
+import DiseaseDashboard from "./components/DiseaseInfo/Dashboard";
+
 
 // Profiles
 import AdminProfile from "./pages/AdminProfile";
@@ -37,6 +39,9 @@ function App() {
         <Route path="/register" element={<RegisterPatient />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/more" element={<DiseaseDashboard />} />
+
+
 
         {/* Profiles */}
         <Route path="/admin/profile" element={<AdminProfile />} />

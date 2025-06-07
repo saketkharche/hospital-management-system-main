@@ -1,5 +1,5 @@
 // src/components/Navbar.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -18,7 +18,14 @@ import {
   Slide,
   useScrollTrigger,
 } from "@mui/material";
-import { Menu, Home, Info, Login, PersonAdd } from "@mui/icons-material";
+import {
+  Menu,
+  Home,
+  Info,
+  Login,
+  PersonAdd,
+  MoreHoriz, // New icon
+} from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
 // Hide-on-scroll behavior
@@ -41,6 +48,7 @@ const Navbar = () => {
     { text: "About Us", to: "/about", icon: <Info /> },
     { text: "Login", to: "/login", icon: <Login /> },
     { text: "Register", to: "/register", icon: <PersonAdd /> },
+    { text: "More", to: "/more", icon: <MoreHoriz /> }, // New 'More' button
   ];
 
   return (
@@ -49,7 +57,7 @@ const Navbar = () => {
         position="fixed"
         elevation={4}
         sx={{
-          backgroundColor: "#fffff)", // Transparent teal
+          backgroundColor: "#1976d2", // or a translucent color: rgba(0,123,255,0.85)
           backdropFilter: "blur(6px)",
         }}
       >
