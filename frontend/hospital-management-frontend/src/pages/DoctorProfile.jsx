@@ -93,12 +93,6 @@ function DoctorProfile() {
       path: "/doctor/appointments/:id/prescription",
     },
     {
-      key: "prescription-history",
-      label: "Prescription History",
-      icon: <LocalPharmacy />,
-      path: "/doctor/prescriptions",
-    },
-    {
       key: "feedback",
       label: "Feedback",
       icon: <FeedbackIcon />,

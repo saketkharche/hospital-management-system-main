@@ -1,30 +1,30 @@
-// src/components/Navbar.js
 import React, { useState } from "react";
 import {
   AppBar,
-  Toolbar,
-  Typography,
+  Box,
   Button,
-  IconButton,
   Drawer,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Box,
+  Toolbar,
+  Typography,
   useMediaQuery,
-  useTheme,
-  Slide,
   useScrollTrigger,
+  useTheme,
 } from "@mui/material";
+import Slide from "@mui/material/Slide";
 import {
-  Menu,
   Home,
   Info,
   Login,
+  Medication,
+  Menu,
+  MoreHoriz,
   PersonAdd,
-  MoreHoriz, // New icon
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
@@ -48,8 +48,47 @@ const Navbar = () => {
     { text: "About Us", to: "/about", icon: <Info /> },
     { text: "Login", to: "/login", icon: <Login /> },
     { text: "Register", to: "/register", icon: <PersonAdd /> },
-    { text: "More", to: "/more", icon: <MoreHoriz /> }, // New 'More' button
+    {
+      text: "More",
+      to: "/more",
+      icon: <MoreHoriz />,
+      subItems: [
+        { text: "Drug Info", to: "/drug-info", icon: <Medication /> },
+        // You can add more items here if needed
+      ],
+    },
   ];
+
+  const renderNavItems = (items) =>
+    items.map((item, index) => (
+      <React.Fragment key={index}>
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to={item.to}
+            onClick={() => setDrawerOpen(false)}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItemButton>
+        </ListItem>
+
+        {/* Render sub-items if present */}
+        {item.subItems &&
+          item.subItems.map((subItem, idx) => (
+            <ListItem key={idx} disablePadding sx={{ pl: 4 }}>
+              <ListItemButton
+                component={Link}
+                to={subItem.to}
+                onClick={() => setDrawerOpen(false)}
+              >
+                <ListItemIcon>{subItem.icon}</ListItemIcon>
+                <ListItemText primary={subItem.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+      </React.Fragment>
+    ));
 
   return (
     <HideOnScroll>
@@ -57,7 +96,7 @@ const Navbar = () => {
         position="fixed"
         elevation={4}
         sx={{
-          backgroundColor: "#1976d2", // or a translucent color: rgba(0,123,255,0.85)
+          backgroundColor: "#1976d2",
           backdropFilter: "blur(6px)",
         }}
       >
@@ -97,20 +136,7 @@ const Navbar = () => {
                 onClose={() => setDrawerOpen(false)}
               >
                 <Box sx={{ width: 250 }} role="presentation">
-                  <List>
-                    {navItems.map((item, index) => (
-                      <ListItem key={index} disablePadding>
-                        <ListItemButton
-                          component={Link}
-                          to={item.to}
-                          onClick={() => setDrawerOpen(false)}
-                        >
-                          <ListItemIcon>{item.icon}</ListItemIcon>
-                          <ListItemText primary={item.text} />
-                        </ListItemButton>
-                      </ListItem>
-                    ))}
-                  </List>
+                  <List>{renderNavItems(navItems)}</List>
                 </Box>
               </Drawer>
             </>

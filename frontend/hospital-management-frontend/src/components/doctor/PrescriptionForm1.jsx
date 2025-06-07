@@ -25,17 +25,18 @@ import DoctorLayout from "./DoctorLayout";
 
 const PrescriptionForm = () => {
   const navigate = useNavigate();
-  const [appointments, setAppointments] = useState([]);
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState("");
-  const [patientData, setPatientData] = useState(null);
-  const [medicines, setMedicines] = useState([
-    { name: "", dosage: "", frequency: "", duration: "", instructions: "" },
-  ]);
-  const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState("");
+  const [patientData, setPatientData] = useState(null);
+  const [doctorName, setDoctorName] = useState("");
+  const [additionalInstructions, setAdditionalInstructions] = useState("");
+  const [medicines, setMedicines] = useState([
+    { name: "", dosage: "", frequency: "", duration: "", instructions: "" },
+  ]);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -50,6 +51,7 @@ const PrescriptionForm = () => {
         );
         setAppointments(res.data || []);
       } catch (err) {
+        console.error("Failed to fetch appointments:", err);
         setError("Failed to load appointments. Please log in again.");
       } finally {
         setLoading(false);
@@ -59,39 +61,45 @@ const PrescriptionForm = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedAppointmentId) {
-      const apt = appointments.find(
-        (a) => a.id === parseInt(selectedAppointmentId),
-      );
-      if (apt) {
-        setPatientData({
-          name: apt.patientName,
-          email: apt.patientEmail,
-          date: apt.date,
-          time: apt.time,
-        });
-      }
+    if (!selectedAppointmentId || !appointments.length) return;
+    const selected = appointments.find(
+      (apt) => apt.id === parseInt(selectedAppointmentId),
+    );
+    if (selected) {
+      setPatientData({
+        name: selected.patientName,
+        date: selected.date,
+        time: selected.time,
+        email: selected.patientEmail || "", // Ensure no null value
+        patientId: selected.patientId,
+      });
     }
   }, [selectedAppointmentId, appointments]);
 
   const handleMedicineChange = (index, field, value) => {
-    const updated = [...medicines];
-    updated[index][field] = value;
-    setMedicines(updated);
+    const updatedMedicines = [...medicines];
+    updatedMedicines[index][field] = value;
+    setMedicines(updatedMedicines);
   };
 
   const addMedicine = () => {
     setMedicines([
       ...medicines,
-      { name: "", dosage: "", frequency: "", duration: "", instructions: "" },
+      {
+        name: "",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        instructions: "",
+      },
     ]);
   };
 
   const removeMedicine = (index) => {
     if (medicines.length > 1) {
-      const updated = [...medicines];
-      updated.splice(index, 1);
-      setMedicines(updated);
+      const updatedMedicines = [...medicines];
+      updatedMedicines.splice(index, 1);
+      setMedicines(updatedMedicines);
     }
   };
 
@@ -100,10 +108,38 @@ const PrescriptionForm = () => {
       setError("Please select an appointment.");
       return false;
     }
-    if (!medicines.some((m) => m.name.trim() !== "")) {
-      setError("Please enter at least one medicine.");
+
+    if (!doctorName.trim()) {
+      setError("Doctor name is required.");
       return false;
     }
+
+    if (!patientData?.email?.trim()) {
+      setError("Patient email is missing. Please reselect the appointment.");
+      return false;
+    }
+
+    if (!medicines.some((med) => med.name.trim() !== "")) {
+      setError("At least one medicine is required.");
+      return false;
+    }
+
+    for (const med of medicines) {
+      if (med.name.trim() === "") continue;
+      if (med.dosage.trim() === "") {
+        setError("Please enter dosage for all medicines.");
+        return false;
+      }
+      if (med.frequency.trim() === "") {
+        setError("Please enter frequency for all medicines.");
+        return false;
+      }
+      if (med.duration.trim() === "") {
+        setError("Please enter duration for all medicines.");
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -113,59 +149,40 @@ const PrescriptionForm = () => {
     if (!validateForm()) return;
 
     setSubmitting(true);
+
+    const prescriptionData = {
+      patientName: patientData.name,
+      doctorName: doctorName.trim(),
+      medicines: medicines
+        .filter((med) => med.name.trim() !== "")
+        .map((med) => med.name.trim()),
+      instructions: additionalInstructions,
+      issued: false,
+      date: patientData.date,
+      patientEmail: patientData.email, // Ensured to be not null
+    };
+
     try {
-      const token = sessionStorage.getItem("token");
-
-      // Decode token to get doctorName
-      let doctorName = "";
-      try {
-        const payload = token ? JSON.parse(atob(token.split(".")[1])) : null;
-        doctorName = payload?.doctorName || payload?.sub || "";
-      } catch (decodeError) {
-        throw new Error("Invalid token. Please log in again.");
-      }
-
-      if (!doctorName) {
-        throw new Error("Doctor information missing in token.");
-      }
-
-      if (!patientData?.email || !patientData?.name || !patientData?.date) {
-        throw new Error(
-          "Incomplete patient data. Please reselect appointment.",
-        );
-      }
-
-      const prescriptionData = {
-        patientName: patientData.name,
-        doctorName: doctorName,
-        medicines: medicines
-          .filter((m) => m.name.trim() !== "")
-          .map((m) => m.name.trim()),
-        instructions: additionalInstructions,
-        date: patientData.date,
-        patientEmail: patientData.email,
-        issued: true,
-      };
-
       await axios.post(
         "http://localhost:8080/hospital/api/prescriptions/issue",
         prescriptionData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
             "Content-Type": "application/json",
           },
         },
       );
+
       setSuccess(true);
       setTimeout(() => navigate("/doctor/appointments"), 2000);
     } catch (err) {
-      const errorMsg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Failed to submit prescription.";
-      setError(errorMsg);
+      console.error("Failed to submit prescription:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to submit prescription. Please try again.";
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -191,7 +208,9 @@ const PrescriptionForm = () => {
           <IconButton onClick={() => navigate(-1)} sx={{ mr: 2 }}>
             <ArrowBack />
           </IconButton>
-          <Typography variant="h4">New Prescription</Typography>
+          <Typography variant="h4" component="h1">
+            New Prescription
+          </Typography>
         </Box>
 
         {error && (
@@ -201,7 +220,7 @@ const PrescriptionForm = () => {
         )}
 
         <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
             Select Appointment
           </Typography>
           <FormControl fullWidth required>
@@ -217,7 +236,7 @@ const PrescriptionForm = () => {
             >
               {appointments.map((apt) => (
                 <MenuItem key={apt.id} value={apt.id}>
-                  {`ID: ${apt.id} | ${apt.patientName} | ${apt.date}`}
+                  {`ID: ${apt.id} | Patient: ${apt.patientName} | Date: ${apt.date}`}
                 </MenuItem>
               ))}
             </Select>
@@ -227,7 +246,7 @@ const PrescriptionForm = () => {
         {patientData && (
           <>
             <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
                 Appointment Summary
               </Typography>
               <Grid container spacing={2}>
@@ -253,22 +272,33 @@ const PrescriptionForm = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <Chip
-                    label={`Email: ${patientData.email}`}
-                    variant="outlined"
-                    color="primary"
+                  <TextField
+                    label="Patient Email"
+                    value={patientData.email}
                     fullWidth
+                    disabled
+                    sx={{ mt: 2 }}
                   />
                 </Grid>
               </Grid>
             </Paper>
 
             <Paper elevation={3} sx={{ p: 4 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
                 Prescription Details
               </Typography>
               <form onSubmit={handleSubmit}>
-                {medicines.map((med, index) => (
+                <TextField
+                  required
+                  label="Doctor Name"
+                  fullWidth
+                  value={doctorName}
+                  onChange={(e) => setDoctorName(e.target.value)}
+                  sx={{ mb: 3 }}
+                  disabled={submitting}
+                />
+
+                {medicines.map((medicine, index) => (
                   <Box key={index} sx={{ mb: 4 }}>
                     <Grid container spacing={2} alignItems="center">
                       <Grid item xs={12} sm={5}>
@@ -276,7 +306,7 @@ const PrescriptionForm = () => {
                           required
                           label="Medicine Name"
                           fullWidth
-                          value={med.name}
+                          value={medicine.name}
                           onChange={(e) =>
                             handleMedicineChange(index, "name", e.target.value)
                           }
@@ -285,9 +315,10 @@ const PrescriptionForm = () => {
                       </Grid>
                       <Grid item xs={12} sm={2}>
                         <TextField
+                          required
                           label="Dosage"
                           fullWidth
-                          value={med.dosage}
+                          value={medicine.dosage}
                           onChange={(e) =>
                             handleMedicineChange(
                               index,
@@ -296,13 +327,15 @@ const PrescriptionForm = () => {
                             )
                           }
                           disabled={submitting}
+                          placeholder="e.g., 500mg"
                         />
                       </Grid>
                       <Grid item xs={12} sm={2}>
                         <TextField
+                          required
                           label="Frequency"
                           fullWidth
-                          value={med.frequency}
+                          value={medicine.frequency}
                           onChange={(e) =>
                             handleMedicineChange(
                               index,
@@ -311,13 +344,15 @@ const PrescriptionForm = () => {
                             )
                           }
                           disabled={submitting}
+                          placeholder="e.g., Twice daily"
                         />
                       </Grid>
                       <Grid item xs={12} sm={2}>
                         <TextField
+                          required
                           label="Duration"
                           fullWidth
-                          value={med.duration}
+                          value={medicine.duration}
                           onChange={(e) =>
                             handleMedicineChange(
                               index,
@@ -326,6 +361,7 @@ const PrescriptionForm = () => {
                             )
                           }
                           disabled={submitting}
+                          placeholder="e.g., 7 days"
                         />
                       </Grid>
                       <Grid item xs={12} sm={1}>
@@ -343,7 +379,7 @@ const PrescriptionForm = () => {
                           fullWidth
                           multiline
                           rows={2}
-                          value={med.instructions}
+                          value={medicine.instructions}
                           onChange={(e) =>
                             handleMedicineChange(
                               index,
@@ -387,7 +423,8 @@ const PrescriptionForm = () => {
                     size="large"
                     sx={{ px: 4 }}
                     disabled={
-                      submitting || !medicines.some((m) => m.name.trim() !== "")
+                      submitting ||
+                      !medicines.some((med) => med.name.trim() !== "")
                     }
                   >
                     {submitting ? (
