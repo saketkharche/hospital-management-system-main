@@ -35,7 +35,7 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized! Please log in again.");
       // Optionally, redirect to login page
-      window.location.href = "LifeBridgeHospital/login";
+      window.location.href = "/LifeBridgeHospital/login";
     }
     return Promise.reject(error);
   }

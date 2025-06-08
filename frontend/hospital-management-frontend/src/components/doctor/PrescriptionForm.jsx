@@ -37,6 +37,11 @@ const PrescriptionForm = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  // New states for doctor info
+  const [doctorName, setDoctorName] = useState("");
+  const [doctorLoading, setDoctorLoading] = useState(true);
+
+  // Fetch appointments
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
@@ -58,6 +63,32 @@ const PrescriptionForm = () => {
     fetchAppointments();
   }, []);
 
+  // Fetch doctor details
+  useEffect(() => {
+    const fetchDoctorDetails = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:8080/hospital/api/doctors/mydetails",
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            },
+          },
+        );
+        const { firstName, lastName } = res.data;
+        setDoctorName(`${firstName} ${lastName}`);
+      } catch (err) {
+        console.error("Failed to fetch doctor details", err);
+        setError("Could not retrieve doctor details.");
+      } finally {
+        setDoctorLoading(false);
+      }
+    };
+
+    fetchDoctorDetails();
+  }, [setError]);
+
+  // Load patient data when appointment is selected
   useEffect(() => {
     if (selectedAppointmentId) {
       const apt = appointments.find(
@@ -110,25 +141,16 @@ const PrescriptionForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
     if (!validateForm()) return;
+
+    if (doctorLoading) {
+      setError("Still loading doctor details. Please wait.");
+      return;
+    }
 
     setSubmitting(true);
     try {
-      const token = sessionStorage.getItem("token");
-
-      // Decode token to get doctorName
-      let doctorName = "";
-      try {
-        const payload = token ? JSON.parse(atob(token.split(".")[1])) : null;
-        doctorName = payload?.doctorName || payload?.sub || "";
-      } catch (decodeError) {
-        throw new Error("Invalid token. Please log in again.");
-      }
-
-      if (!doctorName) {
-        throw new Error("Doctor information missing in token.");
-      }
-
       if (!patientData?.email || !patientData?.name || !patientData?.date) {
         throw new Error(
           "Incomplete patient data. Please reselect appointment.",
@@ -137,7 +159,7 @@ const PrescriptionForm = () => {
 
       const prescriptionData = {
         patientName: patientData.name,
-        doctorName: doctorName,
+        doctorName: doctorName, // 👈 Now contains actual doctor name like "Dr. Sarika Yadhav"
         medicines: medicines
           .filter((m) => m.name.trim() !== "")
           .map((m) => m.name.trim()),
@@ -152,11 +174,12 @@ const PrescriptionForm = () => {
         prescriptionData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
             "Content-Type": "application/json",
           },
         },
       );
+
       setSuccess(true);
       setTimeout(() => navigate("/doctor/appointments"), 2000);
     } catch (err) {
@@ -171,7 +194,7 @@ const PrescriptionForm = () => {
     }
   };
 
-  if (loading) {
+  if (loading || doctorLoading) {
     return (
       <DoctorLayout>
         <Container
@@ -187,6 +210,7 @@ const PrescriptionForm = () => {
   return (
     <DoctorLayout>
       <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+        {/* Header */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
           <IconButton onClick={() => navigate(-1)} sx={{ mr: 2 }}>
             <ArrowBack />
@@ -194,12 +218,14 @@ const PrescriptionForm = () => {
           <Typography variant="h4">New Prescription</Typography>
         </Box>
 
+        {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
         )}
 
+        {/* Appointment Selection */}
         <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
           <Typography variant="h6" gutterBottom>
             Select Appointment
@@ -224,6 +250,7 @@ const PrescriptionForm = () => {
           </FormControl>
         </Paper>
 
+        {/* Patient Summary & Prescription Form */}
         {patientData && (
           <>
             <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
@@ -405,6 +432,7 @@ const PrescriptionForm = () => {
           </>
         )}
 
+        {/* Success Snackbar */}
         <Snackbar
           open={success}
           autoHideDuration={3000}

@@ -9,10 +9,9 @@ import axiosInstance from "../api/axiosConfig";
  */
 export const loginUser = async (credentials) => {
   try {
-    // Send login request to the backend
     const response = await axiosInstance.post("api/login", credentials);
 
-    console.log("Login API Response:", response.data); // Debugging
+    console.log("Login API Response:", response.data);
 
     if (!response.data.token) {
       throw new Error("No token received from server");
@@ -24,7 +23,13 @@ export const loginUser = async (credentials) => {
     return response.data;
   } catch (error) {
     console.error("Login error:", error);
-    throw error.response?.data?.message || "Invalid email or password";
+
+    // ✅ Throw an Error object for proper handling in LoginPage
+    const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Invalid email or password";
+    throw new Error(message);
   }
 };
 
@@ -33,7 +38,7 @@ export const loginUser = async (credentials) => {
  */
 export const logoutUser = () => {
   localStorage.removeItem("token");
-  window.location.href = "/login"; // Redirect to login page
+  window.location.href = "/LifeBridgeHospital/login"; // ✅ Make sure this is consistent with basename
 };
 
 /**
@@ -43,7 +48,7 @@ export const logoutUser = () => {
  */
 export const isAuthenticated = () => {
   const token = localStorage.getItem("token");
-  return !!token; // Returns true if token exists, otherwise false
+  return !!token;
 };
 
 /**
@@ -56,7 +61,7 @@ export const getUserRole = () => {
   if (!token) return null;
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
+    const payload = JSON.parse(atob(token.split(".")[1]));
     return payload.role || null;
   } catch (error) {
     console.error("Error decoding token:", error);
