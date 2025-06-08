@@ -74,7 +74,7 @@ export const updateDoctor = async (email, doctorData) => {
 
 export const deleteDoctor = async (email) => {
   try {
-    const response = await axiosInstance.delete(`'/api/doctors/delete'/${email}`);
+    const response = await axiosInstance.delete(`/api/doctors/delete/${email}`);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Failed to delete doctor');

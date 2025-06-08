@@ -11,73 +11,58 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import {Email, Home, Lock, PersonAdd, Visibility, VisibilityOff, VpnKey,} from "@mui/icons-material";
+import {Email, Home, Lock, PersonAdd, Visibility, VisibilityOff, VpnKey} from "@mui/icons-material";
 import {loginUser} from "../services/authService";
 import "../styles/LoginPage.css";
 import isTokenExpired from "../utils/isTokenExpired";
 import {motion} from "framer-motion";
 
-function LoginPage() {
+// Toastify imports
+import {toast, ToastContainer} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [message, setMessage] = useState({ text: "", severity: "error" });
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setMessage({ text: "", severity: "error" });
 
         // Basic validation
         if (!email || !password) {
-            setMessage({
-                text: "Please enter both email and password.",
-                severity: "error"
-            });
+            toast.error("Please enter both email and password.");
             setIsLoading(false);
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            setMessage({
-                text: "Please enter a valid email address.",
-                severity: "error"
-            });
+            toast.error("Please enter a valid email address.");
             setIsLoading(false);
             return;
         }
 
         if (password.length < 6) {
-            setMessage({
-                text: "Password must be at least 6 characters long.",
-                severity: "error"
-            });
+            toast.error("Password must be at least 6 characters long.");
             setIsLoading(false);
             return;
         }
 
-        const credentials = { email, password };
-
         try {
-            const response = await loginUser(credentials);
+            const response = await loginUser({ email, password });
 
             if (!response?.token || !response?.role) {
-                setMessage({
-                    text: "Invalid login credentials. Please try again.",
-                    severity: "error"
-                });
+                toast.error("Invalid login credentials. Please try again.");
                 setIsLoading(false);
                 return;
             }
 
             if (isTokenExpired(response.token)) {
-                setMessage({
-                    text: "Session expired. Please login again.",
-                    severity: "error"
-                });
+                toast.error("Session expired. Please login again.");
                 setIsLoading(false);
                 return;
             }
@@ -95,19 +80,13 @@ function LoginPage() {
             const route = roleRoutes[response.role];
 
             if (!route) {
-                setMessage({
-                    text: "Unknown role. Please contact support.",
-                    severity: "error"
-                });
+                toast.error("Unknown role. Please contact support.");
                 setIsLoading(false);
                 return;
             }
 
-            // Show success message before redirect
-            setMessage({
-                text: "Login successful! Redirecting...",
-                severity: "success"
-            });
+            // Show success toast
+            toast.success("Login successful! Redirecting...");
 
             // Delay redirect to show success message
             setTimeout(() => {
@@ -116,14 +95,12 @@ function LoginPage() {
 
         } catch (error) {
             console.error("Login error:", error);
-            const errorMessage = error.response?.data?.message ||
+            const errorMessage =
+                error.response?.data?.message ||
                 error.message ||
                 "Login failed. Please check your credentials and try again.";
 
-            setMessage({
-                text: errorMessage,
-                severity: "error"
-            });
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -188,6 +165,7 @@ function LoginPage() {
                                 Log in to access your dashboard
                             </Typography>
 
+                            {/* Login Form */}
                             <form onSubmit={handleLogin}>
                                 <TextField
                                     fullWidth
@@ -238,25 +216,11 @@ function LoginPage() {
                                     }}
                                     required
                                     sx={{
-                                        "& .MuiOutlinedInput-root": {
+                                        "& .MuiOutlinedInput.root": {
                                             borderRadius: "10px",
                                         },
                                     }}
                                 />
-
-                                {message.text && (
-                                    <Typography
-                                        color={message.severity}
-                                        variant="body2"
-                                        sx={{
-                                            mt: 1,
-                                            textAlign: "left",
-                                            fontWeight: message.severity === "success" ? "bold" : "normal"
-                                        }}
-                                    >
-                                        {message.text}
-                                    </Typography>
-                                )}
 
                                 <Button
                                     type="submit"
@@ -322,8 +286,11 @@ function LoginPage() {
                     </motion.div>
                 </Container>
             </Box>
+
+            {/* Toast Container */}
+            <ToastContainer />
         </motion.div>
     );
-}
+};
 
 export default LoginPage;
