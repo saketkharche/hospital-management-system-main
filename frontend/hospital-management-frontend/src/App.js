@@ -8,7 +8,6 @@ import RegisterPatient from "./pages/RegisterPatient";
 import ForgotPassword from "./pages/ForgotPassword";
 import DiseaseDashboard from "./components/DiseaseInfo/Dashboard";
 
-
 // Profiles
 import AdminProfile from "./pages/AdminProfile";
 import DoctorProfile from "./pages/DoctorProfile";
@@ -26,7 +25,7 @@ import AppointmentDetails from "./components/doctor/AppointmentDetails";
 import PrescriptionForm from "./components/doctor/PrescriptionForm";
 import DoctorFeedbackList from "./components/doctor/DoctorFeedback";
 
-// ✅ Add this line:
+// Layouts
 import DoctorLayout from "./components/doctor/DoctorLayout"; // or correct path
 
 function App() {
@@ -41,8 +40,6 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/more" element={<DiseaseDashboard />} />
 
-
-
         {/* Profiles */}
         <Route path="/admin/profile" element={<AdminProfile />} />
         <Route path="/doctor/profile" element={<DoctorProfile />} />
@@ -51,34 +48,18 @@ function App() {
         <Route path="/staff/profile" element={<StaffProfile />} />
 
         {/* Doctor Functional Pages */}
-        {/* Doctor Functional Pages */}
-        <Route
-          path="/doctor/appointments"
-          element={
-              <ViewAppointmentsDoc />
-
-          }
-        />
+        <Route path="/doctor/appointments" element={<ViewAppointmentsDoc />} />
         <Route
           path="/doctor/appointments/:id"
-          element={
-              <AppointmentDetails />
-
-          }
+          element={<AppointmentDetails />}
         />
         <Route
           path="/doctor/prescriptions/new"
-          element={
-              <PrescriptionForm />
-
-          }
+          element={<PrescriptionForm />}
         />
         <Route
           path="/doctor/appointments/:id/prescription"
-          element={
-              <PrescriptionForm />
-
-          }
+          element={<PrescriptionForm />}
         />
         <Route
           path="/doctor/feedback"
