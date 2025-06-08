@@ -6,7 +6,6 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPatient from "./pages/RegisterPatient";
 import ForgotPassword from "./pages/ForgotPassword";
-import DiseaseDashboard from "./components/DiseaseInfo/Dashboard";
 
 // Profiles
 import AdminProfile from "./pages/AdminProfile";
@@ -15,6 +14,9 @@ import PatientProfile from "./pages/PatientProfile";
 import NurseProfile from "./pages/NurseProfile";
 import StaffProfile from "./pages/StaffProfile";
 
+// Disease & Drug Info
+import DiseaseInfo from "./components/diseaseInfo/Dashboard";
+import DrugInfo from "./components/drugInfo/DrugInfo"; // <-- Make sure this exists
 // Common
 import AboutUs from "./components/home/AboutUs";
 import NotFound from "./components/common/NotFound";
@@ -38,7 +40,10 @@ function App() {
         <Route path="/register" element={<RegisterPatient />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/about" element={<AboutUs />} />
-        <Route path="/more" element={<DiseaseDashboard />} />
+
+        {/* Info Pages */}
+        <Route path="/disease-info" element={<DiseaseInfo />} />
+        <Route path="/drug-info" element={<DrugInfo />} />
 
         {/* Profiles */}
         <Route path="/admin/profile" element={<AdminProfile />} />

@@ -1,52 +1,73 @@
 package com.hospital.dto.request;
 
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
 import java.util.List;
 
 public class PrescriptionRequest {
-	private String patientName;
-	private String doctorName;
-	private List<String> medicines;
-	private String instructions;
 
-	public PrescriptionRequest(String patientName, String doctorName, List<String> medicines, String instructions) {
-		super();
-		this.patientName = patientName;
-		this.doctorName = doctorName;
-		this.medicines = medicines;
-		this.instructions = instructions;
-	}
+    @NotBlank(message = "Patient name is required")
+    private String patientName;
 
-	public String getPatientName() {
-		return patientName;
-	}
+    @NotBlank(message = "Doctor name is required")
+    private String doctorName;
 
-	public void setPatientName(String patientName) {
-		this.patientName = patientName;
-	}
+    @NotNull(message = "Date is required")
+    private LocalDate date;
 
-	public String getDoctorName() {
-		return doctorName;
-	}
+    private boolean issued;
 
-	public void setDoctorName(String doctorName) {
-		this.doctorName = doctorName;
-	}
+    private String instructions;
 
-	public List<String> getMedicines() {
-		return medicines;
-	}
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Patient email is required")
+    private String patientEmail;
 
-	public void setMedicines(List<String> medicines) {
-		this.medicines = medicines;
-	}
+    @NotEmpty(message = "Medicines list cannot be empty")
+    private List<@NotBlank(message = "Medicine name cannot be blank") String> medicines;
 
-	public String getInstructions() {
-		return instructions;
-	}
+    // Getters and setters
 
-	public void setInstructions(String instructions) {
-		this.instructions = instructions;
-	}
-
-	// Constructors, getters, setters
+    public String getPatientName() {
+        return patientName;
+    }
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+    public String getDoctorName() {
+        return doctorName;
+    }
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+    public LocalDate getDate() {
+        return date;
+    }
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+    public boolean getIssued() {
+        return issued;
+    }
+    public void setIssued(boolean issued) {
+        this.issued = issued;
+    }
+    public String getInstructions() {
+        return instructions;
+    }
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
+    }
+    public String getPatientEmail() {
+        return patientEmail;
+    }
+    public void setPatientEmail(String patientEmail) {
+        this.patientEmail = patientEmail;
+    }
+    public List<String> getMedicines() {
+        return medicines;
+    }
+    public void setMedicines(List<String> medicines) {
+        this.medicines = medicines;
+    }
 }

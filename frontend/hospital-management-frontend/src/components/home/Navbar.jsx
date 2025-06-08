@@ -3,6 +3,7 @@ import {
   AppBar,
   Box,
   Button,
+  Collapse,
   Drawer,
   IconButton,
   List,
@@ -10,6 +11,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
   Toolbar,
   Typography,
   useMediaQuery,
@@ -18,14 +21,16 @@ import {
 } from "@mui/material";
 import Slide from "@mui/material/Slide";
 import {
+  ExpandLess,
+  ExpandMore,
   Home,
   Info,
   Login,
-  Medication,
-  Menu,
+  Menu as MenuIcon,
   MoreHoriz,
   PersonAdd,
 } from "@mui/icons-material";
+import { Biohazard, Pill } from "lucide-react";
 import { Link } from "react-router-dom";
 
 // Hide-on-scroll behavior
@@ -40,8 +45,11 @@ function HideOnScroll({ children }) {
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const menuOpen = Boolean(anchorEl);
 
   const navItems = [
     { text: "Home", to: "/", icon: <Home /> },
@@ -50,43 +58,67 @@ const Navbar = () => {
     { text: "Register", to: "/register", icon: <PersonAdd /> },
     {
       text: "More",
-      to: "/more",
       icon: <MoreHoriz />,
       subItems: [
-        { text: "Drug Info", to: "/drug-info", icon: <Medication /> },
-        // You can add more items here if needed
+        { text: "Drug Info", to: "/drug-info", icon: <Pill size={20} /> },
+        {
+          text: "Disease Info",
+          to: "/disease-info",
+          icon: <Biohazard size={20} />,
+        },
       ],
     },
   ];
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const toggleDrawerMore = () => {
+    setMoreOpen(!moreOpen);
+  };
 
   const renderNavItems = (items) =>
     items.map((item, index) => (
       <React.Fragment key={index}>
         <ListItem disablePadding>
           <ListItemButton
-            component={Link}
+            component={item.to ? Link : "div"}
             to={item.to}
-            onClick={() => setDrawerOpen(false)}
+            onClick={() => {
+              if (!item.to) toggleDrawerMore();
+              else setDrawerOpen(false);
+            }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
+            {item.subItems && (moreOpen ? <ExpandLess /> : <ExpandMore />)}
           </ListItemButton>
         </ListItem>
 
-        {/* Render sub-items if present */}
-        {item.subItems &&
-          item.subItems.map((subItem, idx) => (
-            <ListItem key={idx} disablePadding sx={{ pl: 4 }}>
-              <ListItemButton
-                component={Link}
-                to={subItem.to}
-                onClick={() => setDrawerOpen(false)}
-              >
-                <ListItemIcon>{subItem.icon}</ListItemIcon>
-                <ListItemText primary={subItem.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+        {/* Collapsible sub-items */}
+        {item.subItems && (
+          <Collapse in={moreOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {item.subItems.map((subItem, idx) => (
+                <ListItem key={idx} disablePadding sx={{ pl: 4 }}>
+                  <ListItemButton
+                    component={Link}
+                    to={subItem.to}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    <ListItemIcon>{subItem.icon}</ListItemIcon>
+                    <ListItemText primary={subItem.text} />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+        )}
       </React.Fragment>
     ));
 
@@ -128,7 +160,7 @@ const Navbar = () => {
                 edge="end"
                 onClick={() => setDrawerOpen(true)}
               >
-                <Menu />
+                <MenuIcon />
               </IconButton>
               <Drawer
                 anchor="right"
@@ -142,17 +174,51 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              {navItems.map((item, index) => (
-                <Button
-                  key={index}
-                  component={Link}
-                  to={item.to}
-                  startIcon={item.icon}
-                  sx={{ color: "white", ml: 1 }}
-                >
-                  {item.text}
-                </Button>
-              ))}
+              {navItems.map((item, index) => {
+                if (item.subItems) {
+                  return (
+                    <div key={index}>
+                      <Button
+                        color="inherit"
+                        startIcon={item.icon}
+                        endIcon={<ExpandMore />}
+                        onClick={handleMenuOpen}
+                        sx={{ ml: 1 }}
+                      >
+                        {item.text}
+                      </Button>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={menuOpen}
+                        onClose={handleMenuClose}
+                      >
+                        {item.subItems.map((subItem, idx) => (
+                          <MenuItem
+                            key={idx}
+                            component={Link}
+                            to={subItem.to}
+                            onClick={handleMenuClose}
+                          >
+                            <ListItemIcon>{subItem.icon}</ListItemIcon>
+                            {subItem.text}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </div>
+                  );
+                }
+                return (
+                  <Button
+                    key={index}
+                    component={Link}
+                    to={item.to}
+                    startIcon={item.icon}
+                    sx={{ color: "white", ml: 1 }}
+                  >
+                    {item.text}
+                  </Button>
+                );
+              })}
             </>
           )}
         </Toolbar>

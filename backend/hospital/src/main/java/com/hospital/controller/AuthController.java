@@ -20,8 +20,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hospital.dto.request.LoginRequest;
+import com.hospital.dto.response.DoctorResponse;
 import com.hospital.security.JwtTokenUtil;
-import com.hospital.service.PatientService;
+import com.hospital.service.DoctorService;  // <-- inject your doctor service
 
 @RestController
 public class AuthController {
@@ -35,33 +36,24 @@ public class AuthController {
 	private JwtTokenUtil jwtTokenUtil;
 
 	@Autowired
-	private PatientService patientService;
+	private DoctorService doctorService;  // inject this to fetch doctor details
 
 	@PostMapping("/api/login")
 	public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
 		String email = loginRequest.getEmail();
 		String password = loginRequest.getPassword();
 
-		System.err.println("Attempting to authenticate user with email: {}" + email);
-		System.err.println("Received password (masked):{}" + password);
-
-		// Logging input credentials
 		logger.info("Attempting to authenticate user with email: {}", email);
-		logger.info("Received password (masked): {}", password != null ? "[PROVIDED]" : "[NOT PROVIDED]");
 
-		// Validate input
 		if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
 			logger.error("Email or password is empty");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email and password must not be empty.");
 		}
 
 		try {
-			// Attempt authentication
-			logger.info("Authenticating user with Spring Security...");
 			Authentication authentication = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(email, password));
 
-			// If authentication is successful, set the context
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			logger.info("Authentication successful for user: {}", email);
 
@@ -69,26 +61,23 @@ public class AuthController {
 			Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 			String role = authorities.isEmpty() ? "" : authorities.iterator().next().getAuthority();
 
-			// Generate JWT token
 			String token = jwtTokenUtil.generateToken(userDetails, role);
 			logger.info("JWT Token generated successfully for user: {}", userDetails.getUsername());
 
-			// Prepare the response
 			Map<String, Object> response = new HashMap<>();
 			response.put("email", userDetails.getUsername());
 			response.put("role", role);
 			response.put("token", token);
 
-			// Check user role and fetch additional details if patient
-//            if ("ROLE_PATIENT".equals(role)) {
-//                logger.info("Fetching patient details for email: {}", userDetails.getUsername());
-//                PatientResponse patientResponse = patientService.getPatientByEmail(userDetails.getUsername());
-//                response.put("patientDetails", patientResponse);
-//            } else if ("ROLE_ADMIN".equals(role)) {
-//                response.put("message", "Welcome Admin");
-//            }
+			// Fetch doctor name if role is doctor (optional: you can do for others similarly)
+			if ("ROLE_DOCTOR".equals(role)) {
+				DoctorResponse doctor = doctorService.fetchDoctorByEmail(email);
+				if (doctor != null) {
+					String doctorName = "Dr. " + doctor.getFirstName() + " " + doctor.getLastName();
+					response.put("doctorName", doctorName);
+				}
+			}
 
-			logger.info("Response: {}", response);
 			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {

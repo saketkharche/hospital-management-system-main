@@ -1,49 +1,96 @@
 package com.hospital.entity;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "prescription")
 public class Prescription {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	private LocalDate date;
+    private String patientName;
+    private String doctorName;
 
-	@ElementCollection(fetch = FetchType.EAGER) // ✅ Force Hibernate to load `medicines`
-	private List<String> medicines;
+    private LocalDate date;
 
-	private String instructions;
+    private boolean issued;
 
-	private String doctorName;
+    private String instructions;
 
-	private String patientName;
+    private String patientEmail;
 
-	@Column(name = "patient_email", nullable = false) // ✅ Explicit column mapping
-	private String patientEmail;
+    @ElementCollection(fetch = FetchType.EAGER)  // <-- fetch eagerly to avoid lazy init errors
+    @CollectionTable(name = "prescription_medicines", joinColumns = @JoinColumn(name = "prescription_id"))
+    @Column(name = "medicine")
+    private List<String> medicines;
 
-	private boolean issued;
+    // Getters and setters
 
-	// Setter method to allow updates
-	public void setPatientEmail(String patientEmail) {
-		this.patientEmail = patientEmail;
-	}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public boolean isIssued() {
+        return issued;
+    }
+
+    public void setIssued(boolean issued) {
+        this.issued = issued;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
+    }
+
+    public String getPatientEmail() {
+        return patientEmail;
+    }
+
+    public void setPatientEmail(String patientEmail) {
+        this.patientEmail = patientEmail;
+    }
+
+    public List<String> getMedicines() {
+        return medicines;
+    }
+
+    public void setMedicines(List<String> medicines) {
+        this.medicines = medicines;
+    }
 }
