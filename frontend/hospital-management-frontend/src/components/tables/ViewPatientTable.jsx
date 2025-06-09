@@ -1,28 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
-  TextField,
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Grid,
+  InputAdornment,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  InputAdornment,
-  Alert,
-  Snackbar,
+  TextField,
+  Tooltip,
+  Typography,
 } from "@mui/material";
-import {
-  fetchAllPatients,
-  registerPatient,
-  updatePatient,
-  deletePatient,
-} from "../../services/patientService";
-import { validatePatientRegistration } from "../../Javascript/patientValidation";
+import {Delete, Edit, Info, PersonAdd, Search,} from "@mui/icons-material";
+import Swal from "sweetalert2";
+import toast, {Toaster} from "react-hot-toast";
+import {deletePatient, fetchAllPatients, registerPatient, updatePatient,} from "../../services/patientService";
+import {validatePatientRegistration} from "../../Javascript/patientValidation";
+
+const defaultPatient = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phoneNumber: "",
+  gender: "",
+  dateOfBirth: "",
+  city: "",
+  state: "",
+  country: "",
+  password: "",
+};
 
 function ViewPatientTable() {
   const [patients, setPatients] = useState([]);
@@ -30,73 +44,45 @@ function ViewPatientTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [formMode, setFormMode] = useState("add");
-  const [currentPatient, setCurrentPatient] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-    gender: "",
-    dateOfBirth: "",
-    city: "",
-    state: "",
-    country: "",
-    password: "",
-  });
-  const [errorMessage, setErrorMessage] = useState("");
-  const [showError, setShowError] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [currentPatient, setCurrentPatient] = useState(defaultPatient);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const patientData = await fetchAllPatients();
-        setPatients(patientData);
-        setFilteredPatients(patientData);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-      }
-    };
     fetchPatients();
   }, []);
 
+  const fetchPatients = async () => {
+    try {
+      const data = await fetchAllPatients();
+      setPatients(data);
+      setFilteredPatients(data);
+    } catch {
+      toast.error("Failed to load patients.");
+    }
+  };
+
   const handleSearchChange = (e) => {
-    const searchValue = e.target.value;
-    setSearchTerm(searchValue);
+    const value = e.target.value.toLowerCase();
+    setSearchTerm(value);
     const filtered = patients.filter(
-      (patient) =>
-        patient.firstName.toLowerCase().includes(searchValue.toLowerCase()) ||
-        patient.lastName.toLowerCase().includes(searchValue.toLowerCase()) ||
-        patient.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-        patient.phoneNumber.includes(searchValue)
+        (p) =>
+            p.firstName.toLowerCase().includes(value) ||
+            p.lastName.toLowerCase().includes(value) ||
+            p.email.toLowerCase().includes(value)
     );
     setFilteredPatients(filtered);
   };
 
   const handleOpenModal = (mode = "add", patient = null) => {
     setFormMode(mode);
-    setCurrentPatient(
-      mode === "edit" && patient
-        ? { ...patient }
-        : {
-            firstName: "",
-            lastName: "",
-            email: "",
-            phoneNumber: "",
-            gender: "",
-            dateOfBirth: "",
-            city: "",
-            state: "",
-            country: "",
-            password: "",
-          }
-    );
+    setCurrentPatient(mode === "edit" && patient ? { ...patient } : defaultPatient);
+    setFormErrors({});
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setErrorMessage("");
+    setFormErrors({});
   };
 
   const handleInputChange = (e) => {
@@ -106,257 +92,204 @@ function ViewPatientTable() {
 
   const validateForm = () => {
     const { errors, isValid } = validatePatientRegistration(currentPatient, formMode === "edit");
-    if (!isValid) {
-      setErrorMessage(Object.values(errors).join(", "));
-      setShowError(true);
-    }
+    setFormErrors(errors);
     return isValid;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
-
+    if (!validateForm()) {
+      toast.error("Please fix errors in the form.");
+      return;
+    }
     try {
       if (formMode === "add") {
         await registerPatient(currentPatient);
-        setSuccessMessage("Patient added successfully!");
+        toast.success("Patient registered successfully.");
       } else {
         await updatePatient(currentPatient.email, currentPatient);
-        setSuccessMessage("Patient updated successfully!");
+        toast.success("Patient updated successfully.");
       }
-
-      const updatedPatients = await fetchAllPatients();
-      setPatients(updatedPatients);
-      setFilteredPatients(updatedPatients);
-      setShowSuccess(true);
+      await fetchPatients();
       handleCloseModal();
     } catch (error) {
-      setErrorMessage(error.message);
-      setShowError(true);
+      toast.error(error.response?.data?.message || "Operation failed.");
     }
   };
 
-  const handleDeletePatient = async (email) => {
-    if (window.confirm("Are you sure you want to delete this patient?")) {
-      try {
-        await deletePatient(email);
-        const updatedPatients = await fetchAllPatients();
-        setPatients(updatedPatients);
-        setFilteredPatients(updatedPatients);
-        setSuccessMessage("Patient deleted successfully!");
-        setShowSuccess(true);
-      } catch (error) {
-        setErrorMessage(error.response?.data?.message || "Error deleting patient");
-        setShowError(true);
+  const handleDeletePatient = (email) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Patient record will be permanently deleted.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#999",
+      confirmButtonText: "Yes, delete",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deletePatient(email);
+          toast.success("Patient deleted.");
+          await fetchPatients();
+        } catch {
+          toast.error("Error deleting patient.");
+        }
       }
-    }
+    });
   };
 
   return (
-    <div className="mt-5">
-      <h4>Patient Details</h4>
+      <Box p={3}>
+        <Toaster position="top-right" />
+        <Typography variant="h4" gutterBottom>
+          🧑‍⚕️ Patient Management
+        </Typography>
 
-      <TextField
-        label="Search by name, email, or phone"
-        variant="outlined"
-        fullWidth
-        value={searchTerm}
-        onChange={handleSearchChange}
-        InputProps={{
-          startAdornment: <InputAdornment position="start">🔍</InputAdornment>,
-        }}
-        style={{ marginBottom: "20px" }}
-      />
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => handleOpenModal("add")}
-        style={{ marginBottom: "20px" }}
-      >
-        Add Patient
-      </Button>
-
-      <TableContainer>
-        <Table sx={{ minWidth: 800 }} aria-label="patient table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Patient ID</TableCell>
-              <TableCell>First Name</TableCell>
-              <TableCell>Last Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone Number</TableCell>
-              <TableCell>Gender</TableCell>
-              <TableCell>Date of Birth</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredPatients.map((patient) => (
-              <TableRow key={patient.patientId}>
-                <TableCell>{patient.patientId}</TableCell>
-                <TableCell>{patient.firstName}</TableCell>
-                <TableCell>{patient.lastName}</TableCell>
-                <TableCell>{patient.email}</TableCell>
-                <TableCell>{patient.phoneNumber}</TableCell>
-                <TableCell>{patient.gender}</TableCell>
-                <TableCell>{patient.dateOfBirth}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleOpenModal("edit", patient)}
-                    style={{ marginRight: "10px" }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleDeletePatient(patient.email)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Dialog open={showModal} onClose={handleCloseModal}>
-        <DialogTitle>
-          {formMode === "add" ? "Add New Patient" : "Edit Patient"}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            label="First Name"
-            name="firstName"
-            value={currentPatient.firstName}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Last Name"
-            name="lastName"
-            value={currentPatient.lastName}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Email"
-            name="email"
-            value={currentPatient.email}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-            disabled={formMode === "edit"}
-          />
-          <TextField
-            label="Phone Number"
-            name="phoneNumber"
-            value={currentPatient.phoneNumber}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Gender"
-            name="gender"
-            value={currentPatient.gender}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Date of Birth"
-            name="dateOfBirth"
-            value={currentPatient.dateOfBirth}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="City"
-            name="city"
-            value={currentPatient.city}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="State"
-            name="state"
-            value={currentPatient.state}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Country"
-            name="country"
-            value={currentPatient.country}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
-          />
-          {formMode === "add" && (
+        <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+          <Grid item xs={12} sm={8}>
             <TextField
-              label="Password"
-              name="password"
-              type="password"
-              value={currentPatient.password}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
+                label="Search by name or email"
+                variant="outlined"
+                fullWidth
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                  ),
+                }}
             />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} color="primary">
-            {formMode === "add" ? "Add Patient" : "Update Patient"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Button
+                variant="contained"
+                fullWidth
+                startIcon={<PersonAdd />}
+                onClick={() => handleOpenModal("add")}
+                sx={{ backgroundColor: "#1976d2", color: "#fff" }}
+            >
+              Add Patient
+            </Button>
+          </Grid>
+        </Grid>
 
-      {/* Success Snackbar */}
-      <Snackbar
-        open={showSuccess}
-        autoHideDuration={6000}
-        onClose={() => setShowSuccess(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setShowSuccess(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          {successMessage}
-        </Alert>
-      </Snackbar>
+        <Paper elevation={4}>
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+                <TableRow>
+                  <TableCell>First</TableCell>
+                  <TableCell>Last</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone</TableCell>
+                  <TableCell>Gender</TableCell>
+                  <TableCell>DOB</TableCell>
+                  <TableCell align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredPatients.map((p) => (
+                    <TableRow key={p.patientId}>
+                      <TableCell>{p.firstName}</TableCell>
+                      <TableCell>{p.lastName}</TableCell>
+                      <TableCell>{p.email}</TableCell>
+                      <TableCell>{p.phoneNumber}</TableCell>
+                      <TableCell>{p.gender}</TableCell>
+                      <TableCell>{p.dateOfBirth}</TableCell>
+                      <TableCell align="center">
+                        <Tooltip title="Edit Patient" arrow>
+                          <Button
+                              color="info"
+                              variant="outlined"
+                              onClick={() => handleOpenModal("edit", p)}
+                              sx={{ mr: 1 }}
+                          >
+                            <Edit fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip title="Delete Patient" arrow>
+                          <Button
+                              color="error"
+                              variant="outlined"
+                              onClick={() => handleDeletePatient(p.email)}
+                          >
+                            <Delete fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                ))}
+                {filteredPatients.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center">
+                        <Info fontSize="small" /> No patients found.
+                      </TableCell>
+                    </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
 
-      {/* Error Snackbar */}
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={() => setShowError(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setShowError(false)}
-          severity="error"
-          sx={{ width: "100%" }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
-    </div>
+        {/* Modal */}
+        <Dialog open={showModal} onClose={handleCloseModal} fullWidth maxWidth="md">
+          <DialogTitle>
+            {formMode === "add" ? "Register New Patient" : "Update Patient Details"}
+          </DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} mt={1}>
+              {[
+                "firstName",
+                "lastName",
+                "email",
+                "phoneNumber",
+                "gender",
+                "dateOfBirth",
+                "city",
+                "state",
+                "country",
+              ].map((field, idx) => (
+                  <Grid item xs={12} sm={6} key={idx}>
+                    <TextField
+                        fullWidth
+                        label={field.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase())}
+                        name={field}
+                        value={currentPatient[field]}
+                        onChange={handleInputChange}
+                        error={!!formErrors[field]}
+                        helperText={formErrors[field]}
+                        disabled={field === "email" && formMode === "edit"}
+                    />
+                  </Grid>
+              ))}
+              {formMode === "add" && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                        fullWidth
+                        type="password"
+                        label="Password"
+                        name="password"
+                        value={currentPatient.password}
+                        onChange={handleInputChange}
+                        error={!!formErrors.password}
+                        helperText={formErrors.password}
+                    />
+                  </Grid>
+              )}
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal}>Cancel</Button>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
+              {formMode === "add" ? "Register" : "Update"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
   );
 }
+
 
 export default ViewPatientTable;

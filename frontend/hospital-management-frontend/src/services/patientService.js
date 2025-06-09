@@ -87,7 +87,7 @@ export const fetchAllPatients = async () => {
 
 export const deletePatient = async (email) => {
   try {
-    const response = await axiosInstance.delete(`api/patients/delete${email}`);
+    const response = await axiosInstance.delete(`api/patients/delete/${email}`);
     return response.data;
   } catch (error) {
     throw error;
