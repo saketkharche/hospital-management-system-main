@@ -1,22 +1,22 @@
 import React from "react";
 import {
   AppBar,
-  Toolbar,
-  Typography,
+  Avatar,
   Box,
   Button,
-  Avatar,
   Card,
   CardContent,
   CardHeader,
+  Container,
+  CssBaseline,
   Grid,
   List,
   ListItem,
   ListItemText,
-  Container,
-  CssBaseline,
+  Toolbar,
+  Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 // Navbar Component
 function Navbar() {
@@ -102,7 +102,7 @@ function StaffProfile() {
                 <Grid item xs={12} sm={4} textAlign="center">
                   <Avatar
                     alt="Staff Member"
-                    src={`${process.env.PUBLIC_URL}/staff.jpg`}
+                    src={`https://static.vecteezy.com/system/resources/previews/059/709/656/non_2x/a-flat-style-illustration-of-a-radiologist-checking-chest-xray-vector.jpg`}
                     sx={{ width: 150, height: 150, margin: "auto" }}
                   />
                   <Typography variant="h6" mt={2} fontWeight="medium">
